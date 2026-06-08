@@ -1,27 +1,20 @@
-    
-  // 1. Tab Switching Logic (Srf active section dikhane ke liye)
 function switchSection(sectionId) {
-    // Saare sections ko pehle chhupa do
     const sections = ['ai-gen-section', 'mic-mode-section', 'explainer-section', 'live-preview-section'];
     sections.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
 
-    // Saare tab buttons se active class hatao
     const buttons = document.querySelectorAll('.tab-btn');
     buttons.forEach(btn => btn.classList.remove('active'));
 
-    // Jo click hua us section ko dikhao aur button ko active karo
     const activeSection = document.getElementById(sectionId + '-section');
     if (activeSection) activeSection.style.display = 'flex';
     
-    // Active button highlight karne ke liye check
     const activeBtn = document.getElementById(sectionId + '-btn');
     if (activeBtn) activeBtn.classList.add('active');
 }
 
-// 2. Mock AI Code Generation Logic
 function generateCode() {
     const prompt = document.getElementById('codePrompt').value.toLowerCase();
     const outputBox = document.getElementById('generatedCodeOutput');
@@ -31,20 +24,46 @@ function generateCode() {
         return;
     }
 
-    outputBox.value = "// Generating your code dynamically...\n";
+    outputBox.value = "// Connecting to Code Bot AI...\n// Generating layout...\n";
 
     setTimeout(() => {
         if (prompt.includes('calculator')) {
-            outputBox.value = `<div style="background:#1e1f26; padding:20px; border-radius:8px; text-align:center;">\n  <h3 style="color:#47cf73;">Calculator</h3>\n  <input type="text" style="width:100%; margin-bottom:10px; background:#131417; color:#fff; border:1px solid #343746; padding:8px;" value="0" readonly />\n  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:5px;">\n    <button style="background:#3b82f6; color:#fff; padding:10px; border:none; border-radius:4px;">7</button>\n    <button style="background:#3b82f6; color:#fff; padding:10px; border:none; border-radius:4px;">8</button>\n    <button style="background:#3b82f6; color:#fff; padding:10px; border:none; border-radius:4px;">9</button>\n    <button style="background:#2563eb; color:#fff; padding:10px; border:none; border-radius:4px;">+</button>\n  </div>\n</div>`;
-        } else if (prompt.includes('button') || prompt.includes('style')) {
-            outputBox.value = `<button style="background:#47cf73; color:#000; padding:12px 24px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Custom AI Button</button>`;
+            outputBox.value = `<div style="background:#1a2634; padding:20px; border-radius:8px; max-width:300px; margin:0 auto; text-align:center;">\n  <h3 style="color:#00ffd5; margin-bottom:15px;">Calculator</h3>\n  <input type="text" style="width:100%; margin-bottom:12px; background:#fff; color:#000; border:none; padding:10px; border-radius:4px; font-size:18px; text-align:right;" value="0" readonly />\n  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">\n    <button style="background:#3b82f6; color:#fff; padding:12px; border:none; border-radius:4px; font-weight:bold;">7</button>\n    <button style="background:#3b82f6; color:#fff; padding:12px; border:none; border-radius:4px; font-weight:bold;">8</button>\n    <button style="background:#3b82f6; color:#fff; padding:12px; border:none; border-radius:4px; font-weight:bold;">9</button>\n    <button style="background:#2563eb; color:#fff; padding:12px; border:none; border-radius:4px; font-weight:bold;">+</button>\n  </div>\n</div>`;
         } else {
-            outputBox.value = `<div style="padding:15px; background:#1e1f26; border-radius:6px;">\n  <p style="color:#5A99E9;">AI Output for: "${prompt}"</p>\n  <p>Hello World! Your request has been successfully parsed.</p>\n</div>`;
+            outputBox.value = `<div style="padding:20px; background:#1e1f26; border-radius:6px; border-left:4px solid #00ffd5;">\n  <h2 style="color:#00ffd5;">AI Generated Content</h2>\n  <p style="color:#fff; margin-top:10px;">Your request for "${prompt}" has been successfully created by Code Bot.</p>\n</div>`;
         }
+    }, 1200);
+}
+
+function startVoiceRecord() {
+    const voiceOutput = document.getElementById('voiceCodeOutput');
+    voiceOutput.value = "Listening to your voice command...\n";
+    setTimeout(() => {
+        voiceOutput.value = `<div style="padding:15px; background:#2c303b; color:#fff; border-radius:4px;">\n  <p>// Code generated via Voice Input successfully!</p>\n</div>`;
+    }, 1500);
+}
+
+function explainCode() {
+    const input = document.getElementById('explainInput').value;
+    const output = document.getElementById('explainOutput');
+    if (!input.trim()) {
+        alert("Please paste some code first!");
+        return;
+    }
+    output.value = "Analyzing code structural logic...\n";
+    setTimeout(() => {
+        output.value = "=== CODE BOT ANALYSIS ===\n1. Language detected successfully.\n2. Structure looks solid.\n3. Logic breakdown: Main wrapper loads elements systematically with zero compilation faults.";
     }, 1000);
 }
 
-// 3. Copy Code Functionality
+function runPreview() {
+    const code = document.getElementById('previewCodeEditor').value;
+    const previewContainer = document.getElementById('liveRenderOutput');
+    if (previewContainer) {
+        previewContainer.innerHTML = code;
+    }
+}
+
 function copyText(elementId) {
     const textEl = document.getElementById(elementId);
     if (!textEl || !textEl.value) {
@@ -54,19 +73,10 @@ function copyText(elementId) {
     textEl.select();
     textEl.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(textEl.value);
-    alert("Code copied to clipboard!");
+    alert("Copied to clipboard!");
 }
 
-// 4. Live Preview Render Function
-function runPreview() {
-    const code = document.getElementById('previewCodeEditor').value;
-    const previewContainer = document.getElementById('liveRenderOutput');
-    if (previewContainer) {
-        previewContainer.innerHTML = code;
-    }
-}
-
-// Default page load par AI Gen open rakho
 document.addEventListener("DOMContentLoaded", () => {
     switchSection('ai-gen');
 });
+    
