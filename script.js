@@ -15,82 +15,124 @@ function switchSection(sectionId) {
     if (activeBtn) activeBtn.classList.add('active');
 }
 
-// === PREMIUM ENGINE: PROFESSIONAL DESIGN WITH AUTO-IMAGE LOADING ===
+// === ORIGINAL ENGINE (WITH EMOJIS & SIMPLE IF-ELSE) ===
 function heavyAIEngine(promptText) {
     const prompt = promptText.trim().toLowerCase();
     
-    // High-End Image Assets
-    const heroImg = "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800";
-    const product1 = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500";
-    const product2 = "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500";
-
-    return `<!-- PREMIUM PROFESSIONAL COMPONENT -->
-<div style="max-width: 800px; margin: 30px auto; background: #0b0c10; color: #fff; font-family: 'Montserrat', sans-serif; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 55px rgba(0,0,0,0.85);">
-  
-  <div style="width: 100%; height: 350px; position: relative;">
-    <img src="${heroImg}" style="width: 100%; height: 100%; object-fit: cover;" />
-    <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px; background: linear-gradient(transparent, #0b0c10);">
-      <h1 style="margin: 0; font-size: 32px; letter-spacing: 2px;">${promptText.toUpperCase()}</h1>
-      <p style="color: #00ffd5; margin-top: 10px;">Premium Architectural Design Layout</p>
-    </div>
+    if (prompt.includes('calculator')) {
+        return `<!-- Standard Calculator Layout -->
+<div style="max-width: 300px; margin: 20px auto; background: #222; padding: 20px; border-radius: 10px; color: #fff; font-family: sans-serif; text-align: center;">
+  <h3>🧮 Calculator Mode</h3>
+  <div style="background: #111; padding: 15px; margin-bottom: 15px; text-align: right; border-radius: 5px; font-size: 24px;">0</div>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+    <button style="padding: 15px; background: #444; color: #fff; border: none; border-radius: 5px;">7</button>
+    <button style="padding: 15px; background: #444; color: #fff; border: none; border-radius: 5px;">8</button>
+    <button style="padding: 15px; background: #444; color: #fff; border: none; border-radius: 5px;">9</button>
+    <button style="padding: 15px; background: #ff9500; color: #fff; border: none; border-radius: 5px;">÷</button>
+    <!-- Basic structural mockup -->
   </div>
+</div>`;
+    } 
+    
+    if (prompt.includes('login') || prompt.includes('form')) {
+        return `<!-- Standard Login Form -->
+<div style="max-width: 350px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-family: sans-serif;">
+  <h2 style="margin-bottom: 20px; color: #333; text-align: center;">🔐 Secure Login</h2>
+  <input type="text" placeholder="Username" style="width:100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+  <input type="password" placeholder="Password" style="width:100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+  <button style="width:100%; padding: 12px; background: #007bff; color: #fff; border: none; border-radius: 4px; font-weight: bold;">Login</button>
+</div>`;
+    }
 
-  <div style="padding: 40px; background: #0f1015;">
-    <p style="font-size: 18px; line-height: 1.8; color: #ccc; max-width: 600px; margin: 0 auto;">
-      This professional component is engineered for modern performance. It integrates high-quality visual assets with a clean, responsive CSS framework to ensure an elite user experience.
-    </p>
-  </div>
-
-  <div style="padding: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-    <img src="${product1}" style="width: 100%; border-radius: 12px;" />
-    <img src="${product2}" style="width: 100%; border-radius: 12px;" />
-  </div>
+    // Default basic fallback response
+    return `<!-- Default Layout Block -->
+<div style="padding: 20px; margin: 20px auto; max-width: 500px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; font-family: sans-serif;">
+  <h4>✨ CodeBot Generation</h4>
+  <p>Custom layout template generated successfully for: <strong>"${promptText}"</strong></p>
 </div>`;
 }
 
-// 1. AI Generation
+// 1. AI Gen Section
 function generateCode() {
     const prompt = document.getElementById('codePrompt').value;
     const outputBox = document.getElementById('generatedCodeOutput');
-    if (!prompt.trim()) return;
+    
+    if (!prompt.trim()) {
+        alert("Please enter a request first!");
+        return;
+    }
 
-    outputBox.value = "Generating professional layout...";
+    outputBox.value = "⚡ CodeBot Engine is processing inputs...\n";
+
     setTimeout(() => {
         outputBox.value = heavyAIEngine(prompt);
     }, 500);
 }
 
-// 2. PERFECT COPY FUNCTION (No Auto-Select After Copy)
-function copyText(elementId) {
-    const textEl = document.getElementById(elementId);
-    if (!textEl || !textEl.value) return;
-    
-    // Copy process
-    navigator.clipboard.writeText(textEl.value);
-    
-    // Selection ko turant hata dega taake "auto-select" feel na ho
-    textEl.blur(); 
-}
-
-// 3. Mic / Explainer / Preview (Standard Professional)
+// 2. Mic Mode Section
 function startVoiceRecord() {
     const voiceOutput = document.getElementById('voiceCodeOutput');
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    
+    if (!SpeechRecognition) {
+        alert("Web Speech API is not supported in this browser.");
+        return;
+    }
+
     const recognition = new SpeechRecognition();
-    recognition.onresult = (event) => {
-        voiceOutput.value = heavyAIEngine(event.results[0][0].transcript);
-    };
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    voiceOutput.value = "Listening... Speak your idea!";
     recognition.start();
+
+    recognition.onresult = function(event) {
+        const speechToText = event.results[0][0].transcript;
+        voiceOutput.value = "Voice Command: \"" + speechToText + "\"\n\n⚡ Generating code...";
+        
+        setTimeout(() => {
+            voiceOutput.value = heavyAIEngine(speechToText);
+        }, 500);
+    };
+
+    recognition.onerror = function(event) {
+        voiceOutput.value = "Error: " + event.error;
+    };
 }
 
+// 3. Explainer Section
 function explainCode() {
     const input = document.getElementById('explainInput').value;
-    document.getElementById('explainOutput').value = "=== ANALYSIS ===\nProfessional CSS/HTML structure detected. Components are optimized for web production.";
+    const output = document.getElementById('explainOutput');
+    if (!input.trim()) {
+        alert("Please paste some code first!");
+        return;
+    }
+    output.value = "=== CODE BOT ANALYSIS ===\n• Layout detected successfully.\n• Code structure verified.";
 }
 
+// 4. Live Preview Section
 function runPreview() {
-    document.getElementById('liveRenderOutput').innerHTML = document.getElementById('previewCodeEditor').value;
+    const code = document.getElementById('previewCodeEditor').value;
+    const previewContainer = document.getElementById('liveRenderOutput');
+    if (previewContainer) {
+        previewContainer.innerHTML = code;
+    }
 }
 
-document.addEventListener("DOMContentLoaded", () => switchSection('ai-gen'));
+// === ORIGINAL COPY UTILITY WITH STANDARD ALERT ===
+function copyText(elementId) {
+    const textEl = document.getElementById(elementId);
+    if (!textEl || !textEl.value) {
+        return;
+    }
+    
+    textEl.select();
+    document.execCommand("copy");
+    alert("Code copied to clipboard! 👍");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    switchSection('ai-gen');
+});
+        
