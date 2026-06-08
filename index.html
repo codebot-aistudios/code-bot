@@ -8,68 +8,68 @@
 </head>
 <body>
 
-    <div class="header-banner">
-        Code Bot
+    <div class="header-banner">Code Bot</div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-container">
+        <button id="ai-gen-btn" class="tab-btn active" onclick="switchSection('ai-gen')">AI Gen</button>
+        <button id="mic-mode-btn" class="tab-btn" onclick="switchSection('mic-mode')">Mic Mode</button>
+        <button id="explainer-btn" class="tab-btn" onclick="switchSection('explainer')">Explainer</button>
+        <button id="live-preview-btn" class="tab-btn" onclick="switchSection('live-preview')">Live Preview</button>
     </div>
-  
-  </header>
 
-  <nav class="feature-tabs">
-    <button class="tab-btn active" onclick="switchSection('ai-gen')">AI Gen</button>
-    <button class="tab-btn" onclick="switchSection('voice-mode')">Mic Mode</button>
-    <button class="tab-btn" onclick="switchSection('explainer')">Explainer</button>
-    <button class="tab-btn" onclick="switchSection('preview-mode')">Live Preview</button>
-  </nav>
-
-  <div class="main-body">
-    
-    <section id="ai-gen" class="feature-section active">
-      <textarea id="promptInput" placeholder="Write a python loop or type your request..." rows="3"></textarea>
-      <button id="generateBtn" class="action-btn">Generate Code</button>
-      
-      <div class="box-container">
-        <div class="box-header"><span>Generated Code:</span><button class="local-copy-btn" onclick="copyText('ai-output')">Copy Code</button></div>
-        <textarea id="ai-output" class="result-box" placeholder="Your generated code will appear here..."></textarea>
-      </div>
-    </section>
-
-    <section id="voice-mode" class="feature-section">
-      <div class="voice-card">
-        <p style="color: #00f5d4; font-size: 14px; margin: 0 0 10px 0;">Speak in Urdu, Hindi, or English:</p>
-        <button id="micBtn" class="action-btn mic-inactive">🎤 Start Recording</button>
-        <p id="speechOutput" style="font-style: italic; color: #aaa; margin-top: 10px; font-size: 13px;">Your voice text will appear here...</p>
-      </div>
-      
-      <div class="box-container">
-        <div class="box-header"><span>Voice Code Output:</span><button class="local-copy-btn" onclick="copyText('voice-output')">Copy Code</button></div>
-        <textarea id="voice-output" class="result-box" placeholder="Code from voice command will appear here..."></textarea>
-      </div>
-    </section>
-
-    <section id="explainer" class="feature-section">
-      <textarea id="codeToExplain" placeholder="Paste any language code here (Python, JS, HTML etc.)..." rows="5"></textarea>
-      <button id="explainBtn" class="action-btn">Explain Code</button>
-      
-      <div class="box-container">
-        <div class="box-header"><span>Translation & Logic Breakdown:</span><button class="local-copy-btn" onclick="copyText('explain-output')">Copy Explanation</button></div>
-        <textarea id="explain-output" class="result-box" placeholder="The code analysis will appear here..."></textarea>
-      </div>
-    </section>
-
-    <section id="preview-mode" class="feature-section">
-      <p style="font-size: 13px; color: #aaa; margin: 0 0 5px 0;">Type/Paste HTML below and press the big button to check live output:</p>
-      <div class="box-header"><span style="font-size:12px; color:#00f5d4;">Live Code Editor:</span><button class="local-copy-btn" onclick="copyText('previewCodeEditor')">Copy Editor Code</button></div>
-      <textarea id="previewCodeEditor" rows="6" placeholder="Example: <div><h1>Hello World"></textarea>
-      
-      <button id="runPreviewBtn" class="action-btn" style="margin-top: 5px; background-color: #ff4757; color: white;">⚡ Auto-Correct & Render Preview</button>
-      
-      <div class="mobile-device">
-        <div class="mobile-screen" id="phoneLiveScreen">
-          <div style="font-family:sans-serif; text-align:center; padding:20px; color:#aaa;">Click the red button above to render code!</div>
+    <!-- AI Gen Section -->
+    <div id="ai-gen-section" class="app-section">
+        <textarea id="codePrompt" placeholder="Write a python loop or type your request..."></textarea>
+        <button class="primary-btn" onclick="generateCode()">Generate Code</button>
+        
+        <div class="output-header">
+            <span>Generated Code:</span>
+            <button class="copy-btn" onclick="copyText('generatedCodeOutput')">Copy Code</button>
         </div>
-      </div>
-    </section>
+        <textarea id="generatedCodeOutput" readonly placeholder="Your generated code will appear here..."></textarea>
+    </div>
 
-  </div>
-                                                                               </div>
-                                                                                 
+    <!-- Mic Mode Section -->
+    <div id="mic-mode-section" class="app-section">
+        <p class="status-text">SPEAK IN URDU, HINDI, OR ENGLISH:</p>
+        <button class="primary-btn voice-btn" onclick="startVoiceRecord()">🎤 Start Recording</button>
+        
+        <div class="output-header">
+            <span>Voice Code Output:</span>
+            <button class="copy-btn" onclick="copyText('voiceCodeOutput')">Copy Code</button>
+        </div>
+        <textarea id="voiceCodeOutput" readonly placeholder="Code from voice command will appear here..."></textarea>
+    </div>
+
+    <!-- Explainer Section -->
+    <div id="explainer-section" class="app-section">
+        <textarea id="explainInput" placeholder="Paste any language code here (Python, JS, HTML etc.)..."></textarea>
+        <button class="primary-btn" onclick="explainCode()">Explain Code</button>
+        
+        <div class="output-header">
+            <span>Translation & Logic Breakdown:</span>
+            <button class="copy-btn" onclick="copyText('explainOutput')">Copy Explanation</button>
+        </div>
+        <textarea id="explainOutput" readonly placeholder="The code analysis will appear here..."></textarea>
+    </div>
+
+    <!-- Live Preview Section -->
+    <div id="live-preview-section" class="app-section">
+        <p class="status-text">TYPE/PASTE HTML BELOW AND PRESS THE BIG BUTTON TO CHECK LIVE OUTPUT:</p>
+        <div class="output-header">
+            <span>Live Code Editor:</span>
+            <button class="copy-btn" onclick="copyText('previewCodeEditor')">Copy Editor Code</button>
+        </div>
+        <textarea id="previewCodeEditor" placeholder="Example: <div><h1>Hello World</h1></div>"></textarea>
+        
+        <button class="primary-btn render-btn" onclick="runPreview()">⚡ Auto-Correct & Render Preview</button>
+        
+        <p class="status-text center-text">Click the red button above to render code!</p>
+        <div id="liveRenderOutput" class="result-box"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+        </html>
+                
