@@ -37,10 +37,38 @@ function generateCode() {
 
 function startVoiceRecord() {
     const voiceOutput = document.getElementById('voiceCodeOutput');
-    voiceOutput.value = "Listening to your voice command...\n";
-    setTimeout(() => {
-        voiceOutput.value = `<div style="padding:15px; background:#2c303b; color:#fff; border-radius:4px;">\n  <p>// Code generated via Voice Input successfully!</p>\n</div>`;
-    }, 1500);
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Web Speech API is not supported in this browser.");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    voiceOutput.value = "Listening... Please speak into your microphone.";
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        const speechToText = event.results[0][0].transcript.toLowerCase();
+        voiceOutput.value = "Speech detected: \"" + speechToText + "\"\n\n";
+        
+        if (speechToText.includes('calculator')) {
+            voiceOutput.value += `<div style="background:#1a2634; padding:20px; border-radius:8px; text-align:center;">\n  <h3 style="color:#00ffd5;">Voice Gen Calculator</h3>\n</div>`;
+        } else if (speechToText.includes('button')) {
+            voiceOutput.value += `<button style="background:#00ffd5; color:#000; padding:10px 20px; border:none; border-radius:4px; font-weight:bold;">Voice Button</button>`;
+        } else {
+            voiceOutput.value += `// Code Bot Voice Output:\n<div style="padding:15px; background:#1e1f26; color:#fff; border-left:4px solid #00ffd5;">\n  <p>Processed Voice Command: "${speechToText}"</p>\n</div>`;
+        }
+    };
+
+    recognition.onerror = function(event) {
+        voiceOutput.value = "Error occurred in recognition: " + event.error + "\nEnsure microphone permissions are granted.";
+    };
 }
 
 function explainCode() {
@@ -64,10 +92,11 @@ function runPreview() {
     }
 }
 
+// Global utility for clipboard interaction
 function copyText(elementId) {
     const textEl = document.getElementById(elementId);
     if (!textEl || !textEl.value) {
-        alert("Nothing to copy!");
+        alert("No content available to copy.");
         return;
     }
     textEl.select();
@@ -79,4 +108,4 @@ function copyText(elementId) {
 document.addEventListener("DOMContentLoaded", () => {
     switchSection('ai-gen');
 });
-    
+        
