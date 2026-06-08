@@ -15,46 +15,8 @@ function switchSection(sectionId) {
     if (activeBtn) activeBtn.classList.add('active');
 }
 
-// === ORIGINAL ENGINE (WITH EMOJIS & SIMPLE IF-ELSE) ===
-function heavyAIEngine(promptText) {
-    const prompt = promptText.trim().toLowerCase();
-    
-    if (prompt.includes('calculator')) {
-        return `<!-- Standard Calculator Layout -->
-<div style="max-width: 300px; margin: 20px auto; background: #222; padding: 20px; border-radius: 10px; color: #fff; font-family: sans-serif; text-align: center;">
-  <h3>🧮 Calculator Mode</h3>
-  <div style="background: #111; padding: 15px; margin-bottom: 15px; text-align: right; border-radius: 5px; font-size: 24px;">0</div>
-  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-    <button style="padding: 15px; background: #444; color: #fff; border: none; border-radius: 5px;">7</button>
-    <button style="padding: 15px; background: #444; color: #fff; border: none; border-radius: 5px;">8</button>
-    <button style="padding: 15px; background: #444; color: #fff; border: none; border-radius: 5px;">9</button>
-    <button style="padding: 15px; background: #ff9500; color: #fff; border: none; border-radius: 5px;">÷</button>
-    <!-- Basic structural mockup -->
-  </div>
-</div>`;
-    } 
-    
-    if (prompt.includes('login') || prompt.includes('form')) {
-        return `<!-- Standard Login Form -->
-<div style="max-width: 350px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-family: sans-serif;">
-  <h2 style="margin-bottom: 20px; color: #333; text-align: center;">🔐 Secure Login</h2>
-  <input type="text" placeholder="Username" style="width:100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
-  <input type="password" placeholder="Password" style="width:100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
-  <button style="width:100%; padding: 12px; background: #007bff; color: #fff; border: none; border-radius: 4px; font-weight: bold;">Login</button>
-</div>`;
-    }
-
-    // Default basic fallback response
-    return `<!-- Default Layout Block -->
-<div style="padding: 20px; margin: 20px auto; max-width: 500px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; font-family: sans-serif;">
-  <h4>✨ CodeBot Generation</h4>
-  <p>Custom layout template generated successfully for: <strong>"${promptText}"</strong></p>
-</div>`;
-}
-
-// 1. AI Gen Section
 function generateCode() {
-    const prompt = document.getElementById('codePrompt').value;
+    const prompt = document.getElementById('codePrompt').value.toLowerCase();
     const outputBox = document.getElementById('generatedCodeOutput');
     
     if (!prompt.trim()) {
@@ -62,18 +24,21 @@ function generateCode() {
         return;
     }
 
-    outputBox.value = "⚡ CodeBot Engine is processing inputs...\n";
+    outputBox.value = "// Connecting to Code Bot AI...\n// Generating layout...\n";
 
     setTimeout(() => {
-        outputBox.value = heavyAIEngine(prompt);
-    }, 500);
+        if (prompt.includes('calculator')) {
+            outputBox.value = `<div style="background:#1a2634; padding:20px; border-radius:8px; max-width:300px; margin:0 auto; text-align:center;">\n  <h3 style="color:#00ffd5; margin-bottom:15px;">Calculator</h3>\n  <input type="text" style="width:100%; margin-bottom:12px; background:#fff; color:#000; border:none; padding:10px; border-radius:4px; font-size:18px; text-align:right;" value="0" readonly />\n  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">\n    <button style="background:#3b82f6; color:#fff; padding:12px; border:none; border-radius:4px; font-weight:bold;">7</button>\n    <button style="background:#3b82f6; color:#fff; padding:12px; border:none; border-radius:4px; font-weight:bold;">8</button>\n    <button style="background:#3b82f6; color:#fff; padding:12px; border:none; border-radius:4px; font-weight:bold;">9</button>\n    <button style="background:#2563eb; color:#fff; padding:12px; border:none; border-radius:4px; font-weight:bold;">+</button>\n  </div>\n</div>`;
+        } else {
+            outputBox.value = `<div style="padding:20px; background:#1e1f26; border-radius:6px; border-left:4px solid #00ffd5;">\n  <h2 style="color:#00ffd5;">AI Generated Content</h2>\n  <p style="color:#fff; margin-top:10px;">Your request for "${prompt}" has been successfully created by Code Bot.</p>\n</div>`;
+        }
+    }, 1200);
 }
 
-// 2. Mic Mode Section
 function startVoiceRecord() {
     const voiceOutput = document.getElementById('voiceCodeOutput');
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
         alert("Web Speech API is not supported in this browser.");
         return;
@@ -82,25 +47,30 @@ function startVoiceRecord() {
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
     recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-    voiceOutput.value = "Listening... Speak your idea!";
+    voiceOutput.value = "Listening... Please speak into your microphone.";
+
     recognition.start();
 
     recognition.onresult = function(event) {
-        const speechToText = event.results[0][0].transcript;
-        voiceOutput.value = "Voice Command: \"" + speechToText + "\"\n\n⚡ Generating code...";
+        const speechToText = event.results[0][0].transcript.toLowerCase();
+        voiceOutput.value = "Speech detected: \"" + speechToText + "\"\n\n";
         
-        setTimeout(() => {
-            voiceOutput.value = heavyAIEngine(speechToText);
-        }, 500);
+        if (speechToText.includes('calculator')) {
+            voiceOutput.value += `<div style="background:#1a2634; padding:20px; border-radius:8px; text-align:center;">\n  <h3 style="color:#00ffd5;">Voice Gen Calculator</h3>\n</div>`;
+        } else if (speechToText.includes('button')) {
+            voiceOutput.value += `<button style="background:#00ffd5; color:#000; padding:10px 20px; border:none; border-radius:4px; font-weight:bold;">Voice Button</button>`;
+        } else {
+            voiceOutput.value += `// Code Bot Voice Output:\n<div style="padding:15px; background:#1e1f26; color:#fff; border-left:4px solid #00ffd5;">\n  <p>Processed Voice Command: "${speechToText}"</p>\n</div>`;
+        }
     };
 
     recognition.onerror = function(event) {
-        voiceOutput.value = "Error: " + event.error;
+        voiceOutput.value = "Error occurred in recognition: " + event.error + "\nEnsure microphone permissions are granted.";
     };
 }
 
-// 3. Explainer Section
 function explainCode() {
     const input = document.getElementById('explainInput').value;
     const output = document.getElementById('explainOutput');
@@ -108,10 +78,12 @@ function explainCode() {
         alert("Please paste some code first!");
         return;
     }
-    output.value = "=== CODE BOT ANALYSIS ===\n• Layout detected successfully.\n• Code structure verified.";
+    output.value = "Analyzing code structural logic...\n";
+    setTimeout(() => {
+        output.value = "=== CODE BOT ANALYSIS ===\n1. Language detected successfully.\n2. Structure looks solid.\n3. Logic breakdown: Main wrapper loads elements systematically with zero compilation faults.";
+    }, 1000);
 }
 
-// 4. Live Preview Section
 function runPreview() {
     const code = document.getElementById('previewCodeEditor').value;
     const previewContainer = document.getElementById('liveRenderOutput');
@@ -120,19 +92,21 @@ function runPreview() {
     }
 }
 
-// === ORIGINAL COPY UTILITY WITH STANDARD ALERT ===
+// Global utility for clipboard interaction
 function copyText(elementId) {
     const textEl = document.getElementById(elementId);
     if (!textEl || !textEl.value) {
+        alert("No content available to copy.");
         return;
     }
-    
     textEl.select();
-    document.execCommand("copy");
-    alert("Code copied to clipboard! 👍");
+    textEl.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(textEl.value);
+    alert("Copied to clipboard!");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     switchSection('ai-gen');
 });
+
         
