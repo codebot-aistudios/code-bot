@@ -1,3 +1,4 @@
+/* 1. Global Reset & Codepen Dark Theme Background */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -5,61 +6,130 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #0f172a;
-    color: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #131417; /* Exact CodePen Dark Editor Background */
+    color: #FFFFFF;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 24px;
+    width: 100%;
 }
 
+/* 2. Top Professional CodeBot Banner */
 .header-banner {
     width: 100%;
-    max-width: 800px;
-    background: linear-gradient(135deg, #1e40af, #3b82f6);
-    color: white;
+    max-width: 1000px;
+    background-color: #1f2229; /* CodePen panel color */
+    color: #5A99E9; /* Premium CodePen Blue */
     text-align: center;
-    padding: 20px;
-    font-size: 32px;
-    font-weight: 800;
-    border-radius: 12px;
+    padding: 18px;
+    font-size: 28px;
+    font-weight: 700;
+    border-radius: 6px;
     margin-bottom: 30px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-    letter-spacing: 1px;
-    display: block;
+    border: 1px solid #2c303b;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-button {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    font-size: 18px;
-    padding: 16px 32px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
+/* 3. Layout: Removing Boxed Sections to make everything flow openly */
+.main-container, .mobile-device, .mobile-screen {
     width: 100%;
-    max-width: 300px;
-    margin: 10px auto;
-    display: block;
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);
-    transition: all 0.2s ease-in-out;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: none !important; /* Removes any background boxes */
+    border: none !important;     /* Removes any outer borders */
+    box-shadow: none !important;  /* Removes outer shadows */
+    padding: 0 !important;
+}
+
+/* 4. Navigation/Tab Buttons Group (AI Gen, Mic Mode, etc.) */
+.tabs-container, .nav, .menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-start;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+/* 5. CodePen Style Premium Buttons */
+button {
+    background-color: #47cf73; /* CodePen Signature Green for primary actions */
+    color: #000000;
+    font-size: 15px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    width: auto;
+    min-width: 140px;
+    display: inline-block;
+    transition: background-color 0.15s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Specific styling for secondary buttons like Copy, Explainer, Live Preview */
+button:not(:first-of-type), [class*="copy"], [class*="preview"], [class*="explain"] {
+    background-color: #2c303b; /* CodePen Secondary Button Dark Grey */
+    color: #A9B2C3;
+    border: 1px solid #444857;
 }
 
 button:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px -2px rgba(59, 130, 246, 0.6);
+    background-color: #248f44; /* Darker Green on hover */
+    color: #FFFFFF;
 }
 
-button:active {
-    transform: translateY(0);
+button:not(:first-of-type):hover, [class*="copy"]:hover, [class*="preview"]:hover, [class*="explain"]:hover {
+    background-color: #444857;
+    color: #FFFFFF;
+    border-color: #5A99E9;
 }
 
-.main-container, .box-header, .result-box, .mobile-device, .mobile-screen {
+/* 6. CodePen Style Large Textareas and Inputs */
+textarea, input[type="text"], .result-box {
+    width: 100% !important;
+    min-height: 160px; /* Big boxes for comfortable typing */
+    background-color: #1e1f26; /* CodePen Editor Box Color */
+    color: #f8f8f2; /* Crisp Text Color */
+    border: 1px solid #343746;
+    border-radius: 6px;
+    padding: 16px;
+    font-family: 'Inconsolata', 'Courier New', Courier, monospace; /* Coding Font */
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 10px 0 20px 0;
+    display: block;
+    resize: vertical;
+}
+
+/* Highlight boxes when active/focused */
+textarea:focus, input[type="text"]:focus {
+    border-color: #5A99E9; /* Blue focus border */
+    outline: none;
+    background-color: #22242d;
+}
+
+/* 7. Clean Labels & Typography Placement */
+p, label, span, h2, h3 {
+    font-size: 15px;
+    color: #5A99E9; /* CodePen Accent Blue for Headings/Labels */
+    font-weight: 600;
+    margin-top: 15px;
+    display: block;
     width: 100%;
-    max-width: 800px;
-    margin: 0 auto 20px auto;
-                                     }
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.result-box {
+    background-color: #15161e;
+    border-left: 4px solid #5A99E9; /* Highlight bar for outputs */
+    }
+    
