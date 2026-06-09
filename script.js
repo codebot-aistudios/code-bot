@@ -1,28 +1,27 @@
-// === 1. TABS SYSTEM FIX (DESIGN SAFE CLICK LOGIC) ===
+// === 1. TABS NAVIGATION MODE (DESIGN SAFE) ===
 function switchSection(sectionId) {
-    // Aapke mobile layout ke charo sections ki IDs
+    // Tumhaare layout ke jo original 4 sections hain, unhe bina disturb kiye toggle karna
     const contents = ['ai-gen-section', 'mic-mode-section', 'explainer-section', 'live-preview-section'];
     
     contents.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            // CSS ko kharab hone se bachane ke liye display empty "" chordna behtar hota hai
+            // Display ko kharab hone se bachane ke liye sirf d-none ya custom toggle use karna
             el.style.setProperty('display', 'none', 'important');
         }
     });
 
-    // Jo section click hua hai, usko wapas active karna bina design kharab kiye
+    // Jo section user click kare, uski display wapas default par le aao
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
-        // "" karne se CSS ka apna asli style (grid/flex) wapas aa jata hai
-        targetSection.style.display = ""; 
+        targetSection.style.display = ""; // "" karne se CSS ka apna purana grid/flex wapas aa jata hai
     }
 
-    // Active button class dynamic manage karna
+    // Top buttons par se active indicator handle karna
     const buttons = document.querySelectorAll('.tabs button, .tabs-nav button, button');
     buttons.forEach(btn => btn.classList.remove('active'));
 
-    // Trigger components logic
+    // Trigger preview and explainer engines smoothly
     if (sectionId === 'live-preview-section') {
         runPreview();
     }
@@ -31,26 +30,27 @@ function switchSection(sectionId) {
     }
 }
 
-// === 2. ASLI GEMINI AI ENGINE ===
+// === 2. GEMINI AI ONLINE COUPLING ENGINE ===
 async function generate() {
-    const promptField = document.getElementById('codePrompt') || document.getElementById('prompt');
+    // Yeh line automatic dhoondegi ke tumhaari HTML me 'prompt' ID hai ya 'codePrompt'
+    const promptField = document.getElementById('prompt') || document.getElementById('codePrompt');
     const hiddenBox = document.getElementById('hiddenCode') || document.getElementById('generatedCodeOutput');
     
     if (!promptField) {
-        alert("Error: Input field 'codePrompt' nahi mila!");
+        alert("System Config Alert: Input field not detected!");
         return;
     }
     
     const promptInput = promptField.value.trim();
     if (!promptInput) { 
-        alert("Pehle prompt likho bhai!"); 
+        alert("Bhai pehle prompt me kuch likho toh sahi!"); 
         return; 
     }
 
-    alert("Asli AI dimaag soch raha hai... Please wait!");
+    alert("Gemini AI dimaag active ho raha hai... Please wait!");
 
     // ============================================================
-    // IMPORTANT: Apni Google AI Studio wali API Key yahan daalo
+    // IMPORTANT: Apni Google AI Studio wali free API Key yahan paste karo
     const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"; 
     // ============================================================
     
@@ -62,16 +62,16 @@ async function generate() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: `${systemInstruction}\n\nUser Prompt: ${promptInput}` }] }]
+                contents: [{ parts: [{ text: `${systemInstruction}\n\nUser Request: ${promptInput}` }] }]
             })
         });
 
-        if (!response.ok) throw new Error(`Status ${response.status}`);
+        if (!response.ok) throw new Error(`Network status error: ${response.status}`);
 
         const data = await response.json();
         let aiGeneratedCode = data.candidates[0].content.parts[0].text.trim();
 
-        // Markdown block clean-up
+        // Safely strip off any markdown characters if AI slips them in
         if (aiGeneratedCode.startsWith("```html")) {
             aiGeneratedCode = aiGeneratedCode.replace(/```html|```/g, "").trim();
         } else if (aiGeneratedCode.startsWith("```")) {
@@ -82,56 +82,58 @@ async function generate() {
             hiddenBox.value = aiGeneratedCode;
         }
         
-        alert("AI ne code ready kar diya! Live Preview check karo.");
+        alert("AI ne code tayaar kar diya! Live Preview tab par jao.");
         
     } catch (error) {
-        console.error("Error:", error);
-        alert("API Key check karo ya internet connectivity dekhain!");
+        console.error("AI Engine Pipeline Failure:", error);
+        alert("API Key me koi masla hai ya internet slow hai. Console check karo bhai!");
     }
 }
 
-// === 3. PREVIEW ENGINE ===
+// === 3. IFRAME RENDERING MATRIX ===
 function runPreview() {
     const hiddenBox = document.getElementById('hiddenCode') || document.getElementById('generatedCodeOutput');
-    const previewFrameWindow = document.getElementById('liveRenderFrame') || document.getElementById('frame');
+    const previewFrameWindow = document.getElementById('frame') || document.getElementById('liveRenderFrame');
     
     if (previewFrameWindow && hiddenBox && hiddenBox.value) {
         const frameDocumentObj = previewFrameWindow.contentDocument || previewFrameWindow.contentWindow.document;
         frameDocumentObj.open();
-        frameDocumentObj.write(hiddenBox.value); 
+        frameDocumentObj.write(hiddenBox.value); // Asli code iframe canvas me render hoga
         frameDocumentObj.close();
     }
 }
 
-// === 4. EXPLAINER SYSTEM ===
+// === 4. STRUCTURE ASST PARSER (EXPLAINER) ===
 function explainCode() {
     const hiddenBox = document.getElementById('hiddenCode') || document.getElementById('generatedCodeOutput');
-    const descriptiveOutputField = document.getElementById('explainOutput') || document.getElementById('exOutput');
+    const descriptiveOutputField = document.getElementById('exOutput') || document.getElementById('explainOutput');
     
     if (!hiddenBox || !hiddenBox.value.trim()) {
-        if (descriptiveOutputField) descriptiveOutputField.value = "Pehle AI Gen tab me code generate karo!";
+        if (descriptiveOutputField) descriptiveOutputField.value = "Pehle AI Gen tab me ja kar code generate karo!";
         return;
     }
     
     const activeTargetCode = hiddenBox.value;
-    const trackedContainers = (activeTargetCode.match(/<div/g) || []).length;
-    const trackedButtons = (activeTargetCode.match(/<button/g) || []).length;
-    const trackedImages = (activeTargetCode.match(/<img/g) || []).length;
+    const totalDivs = (activeTargetCode.match(/<div/g) || []).length;
+    const totalButtons = (activeTargetCode.match(/<button/g) || []).length;
+    const totalImages = (activeTargetCode.match(/<img/g) || []).length;
 
-    let engineeringLogOutput = `ASLI AI CODE ANALYZER REPORT\n`;
+    let engineeringLogOutput = `ASLI AI PARSER STRUCTURAL REPORT\n`;
     engineeringLogOutput += `====================================\n\n`;
-    engineeringLogOutput += `- HTML Structural Boxes (Divs): ${trackedContainers} units\n`;
-    engineeringLogOutput += `- Interactive Elements (Buttons): ${trackedButtons} items\n`;
-    engineeringLogOutput += `- Graphic Assets Loaded (Images): ${trackedImages} elements\n\n`;
-    engineeringLogOutput += `ANALYSIS:\nThis layout structure was generated dynamically by Gemini AI. Styles are fully embedded inside the document tree smoothly.`;
+    engineeringLogOutput += `- Structural Layouts (Divs): ${totalDivs} units parsed.\n`;
+    engineeringLogOutput += `- Click Target System Nodes: ${totalButtons} interactive triggers.\n`;
+    engineeringLogOutput += `- Graphic Media Viewports: ${totalImages} image frames bound.\n\n`;
+    engineeringLogOutput += `ANALYSIS REPORT:\n`;
+    engineeringLogOutput += `This interface structure was built using standard responsive components. All layout vectors are contained smoothly inside the document tree, isolating the canvas viewport from breaking.`;
 
     if (descriptiveOutputField) {
         descriptiveOutputField.value = engineeringLogOutput;
     }
 }
 
-// App listeners bind
+// App listeners initialization on window startup
 document.addEventListener("DOMContentLoaded", () => {
+    // Screenshot ke top buttons ke sequence ke mutabiq event listeners lagana
     const buttons = document.querySelectorAll('.tabs button, .tabs-nav button, button');
     
     if(buttons.length >= 4) {
@@ -141,4 +143,4 @@ document.addEventListener("DOMContentLoaded", () => {
         buttons[3].addEventListener('click', () => switchSection('live-preview-section'));
     }
 });
-            
+        
