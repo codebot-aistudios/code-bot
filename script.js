@@ -103,6 +103,10 @@ function runPreview() {
     const previewFrameWindow = document.getElementById('frame');
     
     if (previewFrameWindow && outputBox && outputBox.value) {
+
+    window.onerror = function(msg, url, line) {
+    alert("JS Error: " + msg + " | Line: " + line);
+};
         const frameDocumentObj = previewFrameWindow.contentDocument || previewFrameWindow.contentWindow.document;
         frameDocumentObj.open();
         frameDocumentObj.write(outputBox.value); // Asli HTML/CSS page render hoga text nahi
