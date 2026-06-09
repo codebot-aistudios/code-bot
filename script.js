@@ -1,63 +1,59 @@
-// === 1. TABS SYSTEM FIX (AAPKE ASLI DESIGN KE MUTABIQ) ===
+// === 1. TABS SYSTEM FIX (DESIGN PROTECTION MODE) ===
 function switchSection(sectionId) {
-    // Aapke original design ke mutabiq saare sections ko hide karna
-    // Note: Apni HTML me in charo divs par id="ai-gen", id="mic-mode", etc. lazmi check kar lena
-    const sections = [
-    'ai-gen-section',
-    'explainer-section',
-    'live-preview-section'
-];
-    sections.forEach(id => {
-        const sec = document.getElementById(id);
+    // 1. Pehle saare sections ko hide karenge unki class target kar ke
+    // Aapke original HTML ke mutabiq aapki sections par class 'feature-section' ya 'tab-section' hogi
+    const sections = document.querySelectorAll('.feature-section, section, [id$="-section"], #ai-gen, #mic-mode, #explainer, #live-preview');
+    
+    sections.forEach(sec => {
         if (sec) {
             sec.style.setProperty('display', 'none', 'important');
         }
     });
 
-    // Jo section user ne click kiya, usse hide hatana taake aapki CSS ka asli display wapas aaye
-    const targetSection =
-document.getElementById(sectionId + '-section');
+    // 2. Jo section click hua hai uski display wapas un-hide karo
+    const targetSection = document.getElementById(sectionId);
     if (targetSection) {
-        targetSection.style.display = ""; // "" karne se aapki CSS ka original design kharab nahi hota
+        // "" karne se aapki CSS ka asli default layout (block/flex) wapas aa jata hai aur design nahi toot ta
+        targetSection.style.display = ""; 
     }
 
-    // Saare tabs se active status hatana
-    const tabs = document.querySelectorAll('.feature-tabs button, .tab-btn');
+    // 3. Saare tab buttons se active state hatana
+    const tabs = document.querySelectorAll('.feature-tabs button, .tab-btn, .tabs button');
     tabs.forEach(tab => {
-        tab.classList.remove('active');
+        tab.classList.remove('active', 'tab-active');
     });
 
-    // Jis tab button par click hua hai, usko green glow (active class) dena
-    // Yeh line automatic dhoondegi ke click kis button par hua hai
-    const clickedBtn = window.event ? window.event.target : null;
-    if (clickedBtn) {
-        clickedBtn.classList.add('active');
+    // 4. Jis button par user ne click kiya hai, usko neon-green active class dena
+    if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
     }
 
-    // Trigger preview and explainer engines smoothly
-    if (sectionId === 'live-preview') {
-        runPreview();
-    }
-    if (sectionId === 'explainer') {
-        explainCode();
-    }
+    // Dynamic functions trigger logic
+    if (sectionId === 'live-preview') runPreview();
+    if (sectionId === 'explainer') explainCode();
 }
 
-// === 2. ASLI GEMINI AI ENGINE (ONLINE COUPLING) ===
+// === 2. INITIALIZATION ON LOAD (BLANK PAGE FIX!) ===
+// Jab website pehli baar khulegi, toh yeh sirf AI Gen ko dikhayegi, baaqi sab hide karegi. 
+// Isse aapka live page kabhi blank nahi hoga!
+document.addEventListener("DOMContentLoaded", () => {
+    // Pehle page load par default tab active karna
+    switchSection('ai-gen'); 
+});
+
+// === 3. ASLI GEMINI AI COUPLING ENGINE ===
 async function generateCode() {
-    // Aapke CodePen ke mutabiq prompt textarea aur output box ko pakadna
-    // HTML me input box par id="prompt" aur output box par id="generatedCodeOutput" laga hona chahiye
     const promptField = document.getElementById('prompt');
     const outputBox = document.getElementById('generatedCodeOutput');
     
     if (!promptField || !outputBox) {
-        alert("System Config Alert: Apni HTML me textarea par id='prompt' aur niche wale box par id='generatedCodeOutput' check karein!");
+        alert("System Config Mismatch: HTML me ids 'prompt' aur 'generatedCodeOutput' check karein!");
         return;
     }
     
     const promptInput = promptField.value.trim();
     if (!promptInput) { 
-        alert("Bhai pehle box me kuch likho toh sahi!"); 
+        alert("Bhai pehle prompt me kuch likho toh sahi!"); 
         return; 
     }
 
@@ -80,50 +76,46 @@ async function generateCode() {
             })
         });
 
-        if (!response.ok) throw new Error(`Network status error: ${response.status}`);
+        if (!response.ok) throw new Error(`Status error: ${response.status}`);
 
         const data = await response.json();
         let aiGeneratedCode = data.candidates[0].content.parts[0].text.trim();
 
-        // Agar AI galti se markdown tags de de, toh unhe saaf karne ka safe tool
+        // Markdown block clean-up tool
         if (aiGeneratedCode.startsWith("```html")) {
             aiGeneratedCode = aiGeneratedCode.replace(/```html|```/g, "").trim();
         } else if (aiGeneratedCode.startsWith("```")) {
             aiGeneratedCode = aiGeneratedCode.replace(/```/g, "").trim();
         }
 
-        // Output box me real code display karna
         outputBox.value = aiGeneratedCode;
         
     } catch (error) {
-        console.error("AI Engine Pipeline Failure:", error);
-        outputBox.value = "Error: Ya toh API Key galat hai ya internet slow hai. Check console!";
+        console.error("AI Pipeline Failure:", error);
+        outputBox.value = "Error: API Key galat hai ya internet slow hai!";
     }
 }
 
-// === 3. IFRAME RENDERING MATRIX ===
+// === 4. IFRAME RENDERING ENGINE ===
 function runPreview() {
     const outputBox = document.getElementById('generatedCodeOutput');
-    // HTML me jahan live preview dikhana hai wahan <iframe id="frame"></iframe> laga hona chahiye
     const previewFrameWindow = document.getElementById('frame');
     
     if (previewFrameWindow && outputBox && outputBox.value) {
-
         const frameDocumentObj = previewFrameWindow.contentDocument || previewFrameWindow.contentWindow.document;
         frameDocumentObj.open();
-        frameDocumentObj.write(outputBox.value); // Asli HTML/CSS page render hoga text nahi
+        frameDocumentObj.write(outputBox.value); 
         frameDocumentObj.close();
     }
 }
 
-// === 4. STRUCTURE TAG PARSER (EXPLAINER) ===
+// === 5. EXPLAINER ENGINE ===
 function explainCode() {
     const outputBox = document.getElementById('generatedCodeOutput');
-    // HTML me explainer tab ke andar <textarea id="exOutput" readonly></textarea> hona chahiye
     const descriptiveOutputField = document.getElementById('exOutput');
     
     if (!outputBox || !outputBox.value.trim() || outputBox.value.startsWith("Asli AI dimaag")) {
-        if (descriptiveOutputField) descriptiveOutputField.value = "Pehle AI Gen tab me ja kar code generate karo bhai!";
+        if (descriptiveOutputField) descriptiveOutputField.value = "Pehle code generate karo bhai!";
         return;
     }
     
@@ -134,16 +126,13 @@ function explainCode() {
 
     let engineeringLogOutput = `ASLI AI PARSER STRUCTURAL REPORT\n`;
     engineeringLogOutput += `====================================\n\n`;
-    engineeringLogOutput += `- Structural Layouts (Divs): ${totalDivs} units parsed.\n`;
-    engineeringLogOutput += `- Click Target System Nodes: ${totalButtons} interactive triggers.\n`;
-    engineeringLogOutput += `- Graphic Media Viewports: ${totalImages} image frames bound.\n\n`;
-    engineeringLogOutput += `ANALYSIS REPORT:\n`;
-    engineeringLogOutput += `This structure uses dynamic blocks. All layers are contained inside the document tree, isolating the canvas view from breaking.`;
+    engineeringLogOutput += `- Layout Containers (Divs): ${totalDivs} units found.\n`;
+    engineeringLogOutput += `- Interactive Triggers (Buttons): ${totalButtons} elements.\n`;
+    engineeringLogOutput += `- Graphics Mapped (Images): ${totalImages} viewports.\n\n`;
+    engineeringLogOutput += `ANALYSIS:\nLayout compiled inline. Protected from breaking frame layouts.`;
 
     if (descriptiveOutputField) {
         descriptiveOutputField.value = engineeringLogOutput;
     }
-}
-document.addEventListener("DOMContentLoaded", () => {
-    switchSection('ai-gen');
-});
+            }
+        
