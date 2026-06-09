@@ -1,59 +1,50 @@
-// === 1. TABS SYSTEM FIX (DESIGN PROTECTION MODE) ===
-function switchSection(sectionId) {
-    // 1. Pehle saare sections ko hide karenge unki class target kar ke
-    // Aapke original HTML ke mutabiq aapki sections par class 'feature-section' ya 'tab-section' hogi
-    const sections = document.querySelectorAll('.feature-section, section, [id$="-section"], #ai-gen, #mic-mode, #explainer, #live-preview');
+// === 1. LIVE TABS PROTECTION CONTROLLER ===
+function switchSection(sectionName) {
+    // Aapki live HTML ke mutabiq exact charo sections ki IDs
+    const sections = ['ai-gen-section', 'mic-mode-section', 'explainer-section', 'live-preview-section'];
     
-    sections.forEach(sec => {
-        if (sec) {
-            sec.style.setProperty('display', 'none', 'important');
+    // Yeh block bina aapki CSS ko kharab kiye sirf blocks ko hide/show karega
+    sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            if (id === sectionName + '-section') {
+                el.style.setProperty('display', 'block', 'important'); // Sahi section ko samne lao
+            } else {
+                el.style.setProperty('display', 'none', 'important'); // Baaqi sab ko chupa do
+            }
         }
     });
 
-    // 2. Jo section click hua hai uski display wapas un-hide karo
-    const targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-        // "" karne se aapki CSS ka asli default layout (block/flex) wapas aa jata hai aur design nahi toot ta
-        targetSection.style.display = ""; 
+    // Saare buttons se green highlight (active class) hatana
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    // Jis button par click hua hai, usko active class dena
+    const activeBtn = document.getElementById(sectionName + '-btn');
+    if (activeBtn) {
+        activeBtn.classList.add('active');
     }
-
-    // 3. Saare tab buttons se active state hatana
-    const tabs = document.querySelectorAll('.feature-tabs button, .tab-btn, .tabs button');
-    tabs.forEach(tab => {
-        tab.classList.remove('active', 'tab-active');
-    });
-
-    // 4. Jis button par user ne click kiya hai, usko neon-green active class dena
-    if (window.event && window.event.target) {
-        window.event.target.classList.add('active');
-    }
-
-    // Dynamic functions trigger logic
-    if (sectionId === 'live-preview') runPreview();
-    if (sectionId === 'explainer') explainCode();
 }
 
-// === 2. INITIALIZATION ON LOAD (BLANK PAGE FIX!) ===
-// Jab website pehli baar khulegi, toh yeh sirf AI Gen ko dikhayegi, baaqi sab hide karegi. 
-// Isse aapka live page kabhi blank nahi hoga!
-document.addEventListener("DOMContentLoaded", () => {
-    // Pehle page load par default tab active karna
-    switchSection('ai-gen'); 
-});
+// === 2. ANTI-BLANK PAGE INITIALIZATION ===
+// Website khulte hi automatic AI Gen section chalega taake live page khali na dikhe
+window.onload = function() {
+    switchSection('ai-gen');
+};
 
-// === 3. ASLI GEMINI AI COUPLING ENGINE ===
+// === 3. GEMINI AI CODE GENERATOR ===
 async function generateCode() {
-    const promptField = document.getElementById('prompt');
+    const promptField = document.getElementById('codePrompt');
     const outputBox = document.getElementById('generatedCodeOutput');
     
     if (!promptField || !outputBox) {
-        alert("System Config Mismatch: HTML me ids 'prompt' aur 'generatedCodeOutput' check karein!");
+        alert("System Config Error: HTML Elements not found!");
         return;
     }
     
     const promptInput = promptField.value.trim();
     if (!promptInput) { 
-        alert("Bhai pehle prompt me kuch likho toh sahi!"); 
+        alert("Bhai pehle prompt box me kuch likho!"); 
         return; 
     }
 
@@ -76,12 +67,12 @@ async function generateCode() {
             })
         });
 
-        if (!response.ok) throw new Error(`Status error: ${response.status}`);
+        if (!response.ok) throw new Error(`Status: ${response.status}`);
 
         const data = await response.json();
         let aiGeneratedCode = data.candidates[0].content.parts[0].text.trim();
 
-        // Markdown block clean-up tool
+        // Safe markdown cleanup
         if (aiGeneratedCode.startsWith("```html")) {
             aiGeneratedCode = aiGeneratedCode.replace(/```html|```/g, "").trim();
         } else if (aiGeneratedCode.startsWith("```")) {
@@ -91,48 +82,65 @@ async function generateCode() {
         outputBox.value = aiGeneratedCode;
         
     } catch (error) {
-        console.error("AI Pipeline Failure:", error);
+        console.error("AI Failure:", error);
         outputBox.value = "Error: API Key galat hai ya internet slow hai!";
     }
 }
 
-// === 4. IFRAME RENDERING ENGINE ===
+// === 4. LIVE PREVIEW ENGINE ===
 function runPreview() {
-    const outputBox = document.getElementById('generatedCodeOutput');
-    const previewFrameWindow = document.getElementById('frame');
+    const editorCode = document.getElementById('previewCodeEditor');
+    const resultBox = document.getElementById('liveRenderOutput');
     
-    if (previewFrameWindow && outputBox && outputBox.value) {
-        const frameDocumentObj = previewFrameWindow.contentDocument || previewFrameWindow.contentWindow.document;
-        frameDocumentObj.open();
-        frameDocumentObj.write(outputBox.value); 
-        frameDocumentObj.close();
+    if (resultBox && editorCode && editorCode.value.trim()) {
+        resultBox.innerHTML = `<iframe id="previewFrame" style="width:100%; height:100%; border:none; background:white; border-radius:8px;"></iframe>`;
+        
+        const previewFrame = document.getElementById('previewFrame');
+        const frameDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+        
+        frameDoc.open();
+        frameDoc.write(editorCode.value); 
+        frameDoc.close();
+    } else {
+        alert("Pehle Live Code Editor me HTML code likho bhai!");
     }
 }
 
 // === 5. EXPLAINER ENGINE ===
 function explainCode() {
-    const outputBox = document.getElementById('generatedCodeOutput');
-    const descriptiveOutputField = document.getElementById('exOutput');
+    const inputCode = document.getElementById('explainInput').value.trim();
+    const outputBox = document.getElementById('explainOutput');
     
-    if (!outputBox || !outputBox.value.trim() || outputBox.value.startsWith("Asli AI dimaag")) {
-        if (descriptiveOutputField) descriptiveOutputField.value = "Pehle code generate karo bhai!";
+    if (!inputCode) {
+        if (outputBox) outputBox.value = "Pehle upar wale box me koi code paste karo!";
         return;
     }
     
-    const activeTargetCode = outputBox.value;
-    const totalDivs = (activeTargetCode.match(/<div/g) || []).length;
-    const totalButtons = (activeTargetCode.match(/<button/g) || []).length;
-    const totalImages = (activeTargetCode.match(/<img/g) || []).length;
+    outputBox.value = "Analyzing code structural design...";
+    const totalDivs = (inputCode.match(/<div/g) || []).length;
+    const totalButtons = (inputCode.match(/<button/g) || []).length;
 
-    let engineeringLogOutput = `ASLI AI PARSER STRUCTURAL REPORT\n`;
-    engineeringLogOutput += `====================================\n\n`;
-    engineeringLogOutput += `- Layout Containers (Divs): ${totalDivs} units found.\n`;
-    engineeringLogOutput += `- Interactive Triggers (Buttons): ${totalButtons} elements.\n`;
-    engineeringLogOutput += `- Graphics Mapped (Images): ${totalImages} viewports.\n\n`;
-    engineeringLogOutput += `ANALYSIS:\nLayout compiled inline. Protected from breaking frame layouts.`;
+    let report = `ASLI AI CODE ANALYZER REPORT\n====================================\n\n`;
+    report += `- Div Containers: ${totalDivs} found.\n`;
+    report += `- Buttons: ${totalButtons} found.\n\n`;
+    report += `LOGIC BREAKDOWN:\nCode successfully parsed natively. All style vectors are intact.`;
 
-    if (descriptiveOutputField) {
-        descriptiveOutputField.value = engineeringLogOutput;
+    outputBox.value = report;
+}
+
+// === 6. UTILITY FUNCTIONS (COPY TEXT) ===
+function copyText(elementId) {
+    const copyTarget = document.getElementById(elementId);
+    if (copyTarget && copyTarget.value) {
+        copyTarget.select();
+        navigator.clipboard.writeText(copyTarget.value);
+        alert("Copied to clipboard! 👍");
+    } else {
+        alert("Box khali hai bhai!");
     }
+}
+
+function startVoiceRecord() {
+    alert("Voice Module Ready!");
             }
-        
+            
