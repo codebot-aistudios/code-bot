@@ -2,7 +2,11 @@
 function switchSection(sectionId) {
     // Aapke original design ke mutabiq saare sections ko hide karna
     // Note: Apni HTML me in charo divs par id="ai-gen", id="mic-mode", etc. lazmi check kar lena
-    const sections = ['ai-gen', 'mic-mode', 'explainer', 'live-preview'];
+    const sections = [
+    'ai-gen-section',
+    'explainer-section',
+    'live-preview-section'
+];
     sections.forEach(id => {
         const sec = document.getElementById(id);
         if (sec) {
@@ -11,7 +15,8 @@ function switchSection(sectionId) {
     });
 
     // Jo section user ne click kiya, usse hide hatana taake aapki CSS ka asli display wapas aaye
-    const targetSection = document.getElementById(sectionId);
+    const targetSection =
+document.getElementById(sectionId + '-section');
     if (targetSection) {
         targetSection.style.display = ""; // "" karne se aapki CSS ka original design kharab nahi hota
     }
@@ -104,9 +109,6 @@ function runPreview() {
     
     if (previewFrameWindow && outputBox && outputBox.value) {
 
-    window.onerror = function(msg, url, line) {
-    alert("JS Error: " + msg + " | Line: " + line);
-};
         const frameDocumentObj = previewFrameWindow.contentDocument || previewFrameWindow.contentWindow.document;
         frameDocumentObj.open();
         frameDocumentObj.write(outputBox.value); // Asli HTML/CSS page render hoga text nahi
@@ -142,3 +144,6 @@ function explainCode() {
         descriptiveOutputField.value = engineeringLogOutput;
     }
 }
+document.addEventListener("DOMContentLoaded", () => {
+    switchSection('ai-gen');
+});
