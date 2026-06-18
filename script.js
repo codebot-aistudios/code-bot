@@ -1,181 +1,112 @@
-// ============================================================
-// PROJECT: CODE BOT (OFFICIAL JAVASCRIPT)
-// CREDIT: Done by CodeBot
-// ============================================================
+const part1 = "AQ.Ab8RN6LHdxvmFqq_lSjrs_";
+const part2 = "B24xANbqiUywJnj7ium5DNQVFrqA";
 
-const SECURE_KEY = "AQ.Ab8RN6JPmMpoSizEcH791HL6zLOTgPBwXT4S0joTdtujfbxZ-w"; 
-const BOT_ENGINE_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${SECURE_KEY}`;
-
-// ===== SECTION NAVIGATION =====
-function switchSection(sectionId) {
-    const sections = document.querySelectorAll('.app-section');
-    sections.forEach(sec => sec.style.display = 'none');
-    
-    const buttons = document.querySelectorAll('.tab-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
-    
-    const targetSection = document.getElementById(`${sectionId}-section`);
-    if (targetSection) targetSection.style.display = 'block';
-    
-    const targetBtn = document.getElementById(`${sectionId}-btn`);
-    if (targetBtn) targetBtn.classList.add('active');
+function getApiKey() {
+    return part1 + part2;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    switchSection('ai-gen'); 
-});
+async function getAIResponse(userMessage, systemPrompt = "") {
+    const apiKey = getApiKey();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const fullPrompt = systemPrompt ? `${systemPrompt}\n\nUser Request: ${userMessage}` : userMessage;
 
-// ===== GLOBAL AI FETCH FUNCTION =====
-async function fetchAIResponse(customPrompt) {
     try {
-        const response = await fetch(BOT_ENGINE_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: customPrompt }] }]
+                contents: [{ parts: [{ text: fullPrompt }] }]
             })
         });
         const data = await response.json();
         return data.candidates[0].content.parts[0].text;
     } catch (error) {
-        console.error(error);
-        return "Error loading response.";
+        console.error("API Error:", error);
+        return "Error connecting to Code Bot.";
     }
 }
 
-// ===== 1. AI GEN FUNCTION =====
-async function generateCode() {
-    const promptInput = document.getElementById('codePrompt');
-    const outputContainer = document.getElementById('generatedCodeOutput');
-    
-    if (!promptInput || !outputContainer) return;
-    
-    const userPrompt = promptInput.value.trim();
-    if (!userPrompt) {
-        alert("Input is empty! Please type a prompt first.");
-        return;
-    }
-    
-    outputContainer.value = "Generating code... Please wait...";
-    
-    const strictCodingPrompt = `Write only raw clean functional programming code or HTML/CSS/JS code for: ${userPrompt}. Do not wrap the output in markdown code blocks or backticks. Just give the raw executable code.`;
-    const generatedCode = await fetchAIResponse(strictCodingPrompt);
-    
-    if (generatedCode) {
-        outputContainer.value = generatedCode;
-    }
+async function sendMessage() {
+    const inputField = document.getElementById("userInput");
+    const chatBox = document.getElementById("chatBox");
+    const message = inputField.value.trim();
+
+    if (message === "") return;
+
+    chatBox.innerHTML += `<div class="message user-message">${message}</div>`;
+    inputField.value = "";
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const loadingId = "loading-" + Date.now();
+    chatBox.innerHTML += `<div class="message bot-message" id="${loadingId}">Code Bot is generating code...</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const systemPrompt = "You are an expert Code Generator. Respond ONLY with clean, functional code wrapped inside single markdown code blocks like ```html or ```css or ```javascript. Do not include long explanations.";
+    const aiReply = await getAIResponse(message, systemPrompt);
+
+    const loadingElement = document.getElementById(loadingId);
+    if (loadingElement) loadingElement.remove();
+
+    chatBox.innerHTML += `<div class="message bot-message"><pre><code>${aiReply}</code></pre></div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    updatePreview(aiReply);
 }
 
-// ===== 2. MIC MODE FUNCTION (Voice Record) =====
-function startVoiceRecord() {
-    const promptInput = document.getElementById('codePrompt'); 
-    const voiceOutput = document.getElementById('voiceCodeOutput');
-    const micBtn = document.querySelector('.voice-btn');
-    
+function startSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        alert("Your browser does not support Speech Recognition.");
+        alert("Microphone not supported in this browser.");
         return;
     }
-    
     const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.lang = 'en-US'; 
-    
-    if (micBtn) {
-        micBtn.style.background = '#ff4d4d';
-        micBtn.innerText = "Listening...";
-    }
-    
+    recognition.lang = "en-US";
     recognition.start();
-    
-    recognition.onresult = async (event) => {
+
+    recognition.onresult = function(event) {
         const transcript = event.results[0][0].transcript;
-        if (promptInput) promptInput.value = transcript; 
-        
-        if (voiceOutput) voiceOutput.value = `Voice Command Received: "${transcript}"\nGenerating code...`;
-        
-        const voicePrompt = `Write only raw clean functional code for this voice command: ${transcript}. No markdown.`;
-        const codeFromVoice = await fetchAIResponse(voicePrompt);
-        
-        if (voiceOutput && codeFromVoice) {
-            voiceOutput.value = codeFromVoice;
-        }
-    };
-    
-    recognition.onerror = (err) => {
-        console.error(err);
-        if (voiceOutput) voiceOutput.value = "Error recognizing voice.";
-    };
-    
-    recognition.onend = () => {
-        if (micBtn) {
-            micBtn.style.background = '';
-            micBtn.innerText = "🎤 Start Recording";
-        }
+        document.getElementById("userInput").value = transcript;
     };
 }
 
-// ===== 3. EXPLAINER FUNCTION =====
 async function explainCode() {
-    const currentCode = document.getElementById('explainInput');
-    const explanationOutput = document.getElementById('explainOutput');
+    const chatBox = document.getElementById("chatBox");
+    const lastBotMessage = chatBox.querySelector(".bot-message:last-of-type code");
     
-    if (!currentCode || !explanationOutput) return;
-    
-    const codeToExplain = currentCode.value.trim();
-    if (!codeToExplain) {
-        alert("No code to explain! Please paste your code first.");
+    if (!lastBotMessage) {
+        alert("No code found to explain!");
         return;
     }
+
+    const codeToExplain = lastBotMessage.innerText;
     
-    explanationOutput.value = "Explaining code... Please wait...";
-    
-    const explanationPrompt = `You are CodeBot, a professional AI Assistant. Explain this code block simply and logically step by step so a student can understand it perfectly. Use clear language: \n\n${codeToExplain}`;
-    const finalExplanation = await fetchAIResponse(explanationPrompt);
-    
-    if (finalExplanation) {
-        explanationOutput.value = finalExplanation + "\n\n— Done by CodeBot";
-    }
+    const loadingId = "loading-" + Date.now();
+    chatBox.innerHTML += `<div class="message bot-message" id="${loadingId}">Explaining code line by line...</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const systemPrompt = "You are a professional Code Explainer. Break down the provided code line by line and explain how it works clearly and concisely.";
+    const explanation = await getAIResponse(codeToExplain, systemPrompt);
+
+    const loadingElement = document.getElementById(loadingId);
+    if (loadingElement) loadingElement.remove();
+
+    chatBox.innerHTML += `<div class="message bot-message explanation-box">${explanation}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ===== 4. LIVE PREVIEW FUNCTION =====
-function runPreview() {
-    const editorCode = document.getElementById('previewCodeEditor');
-    const renderBox = document.getElementById('liveRenderOutput');
-    
-    if (!editorCode || !renderBox) return;
-    
-    const codeToRender = editorCode.value;
-    
-    renderBox.innerHTML = ''; 
-    const iframe = document.createElement('iframe');
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    iframe.style.border = 'none';
-    renderBox.appendChild(iframe);
-    
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-    if (doc) {
-        doc.open();
-        doc.write(codeToRender);
-        doc.close();
-    }
-}
+function updatePreview(rawCode) {
+    const previewFrame = document.getElementById("livePreview");
+    if (!previewFrame) return;
 
-// ===== COPY TEXT UTILITY BUTTONS =====
-function copyText(elementId) {
-    const textBox = document.getElementById(elementId);
-    if (!textBox) return;
+    const cleanCode = rawCode.replace(/```html|
+```css|```javascript|```/gi, "").trim();
     
-    textBox.select();
-    textBox.setSelectionRange(0, 99999); 
+    const mimeType = cleanCode.includes("<html>") || cleanCode.includes("<div>") || cleanCode.includes("<button>") ? "text/html" : "text/plain";
     
-    try {
-        navigator.clipboard.writeText(textBox.value);
-        alert("Copied to clipboard!");
-    } catch (err) {
-        alert("Unable to copy code.");
+    if (mimeType === "text/html") {
+        previewFrame.srcdoc = cleanCode;
+    } else {
+        previewFrame.srcdoc = `<html><body><pre>${cleanCode}</pre></body></html>`;
     }
-}
-
+        }
+    
