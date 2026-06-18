@@ -1,5 +1,5 @@
-const part1 = "AQ.Ab8RN6LHdxvmFqq_lSjrs_";
-const part2 = "B24xANbqiUywJnj7ium5DNQVFrqA";
+const p1 = "AQ.Ab8RN6KgVtQOeUgKbIUUA4s6J";
+const p2 = "nLRsIxkqI6hPMXIyP2JhBkqaQ";
 
 function getApiKey() {
     return part1 + part2;
