@@ -19,7 +19,10 @@ async function getAIResponse(userMessage, systemPrompt = "") {
             })
         });
         const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            return data.candidates[0].content.parts[0].text;
+        }
+        return "No response from AI.";
     } catch (error) {
         console.error("API Error:", error);
         return "Error connecting to Code Bot.";
@@ -29,8 +32,10 @@ async function getAIResponse(userMessage, systemPrompt = "") {
 async function sendMessage() {
     const inputField = document.getElementById("userInput");
     const chatBox = document.getElementById("chatBox");
+    
+    if (!inputField || !chatBox) return;
+    
     const message = inputField.value.trim();
-
     if (message === "") return;
 
     chatBox.innerHTML += `<div class="message user-message">${message}</div>`;
@@ -41,7 +46,7 @@ async function sendMessage() {
     chatBox.innerHTML += `<div class="message bot-message" id="${loadingId}">Code Bot is generating code...</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    const systemPrompt = "You are an expert Code Generator. Respond ONLY with clean, functional code wrapped inside single markdown code blocks like ```html or ```css or ```javascript. Do not include long explanations.";
+    const systemPrompt = "You are an expert Code Generator. Respond ONLY with clean, functional code wrapped inside markdown code blocks like ```html. Do not include explanations.";
     const aiReply = await getAIResponse(message, systemPrompt);
 
     const loadingElement = document.getElementById(loadingId);
@@ -65,26 +70,27 @@ function startSpeechRecognition() {
 
     recognition.onresult = function(event) {
         const transcript = event.results[0][0].transcript;
-        document.getElementById("userInput").value = transcript;
+        const inputField = document.getElementById("userInput");
+        if (inputField) inputField.value = transcript;
     };
 }
 
 async function explainCode() {
     const chatBox = document.getElementById("chatBox");
+    if (!chatBox) return;
+
     const lastBotMessage = chatBox.querySelector(".bot-message:last-of-type code");
-    
     if (!lastBotMessage) {
         alert("No code found to explain!");
         return;
     }
 
     const codeToExplain = lastBotMessage.innerText;
-    
     const loadingId = "loading-" + Date.now();
     chatBox.innerHTML += `<div class="message bot-message" id="${loadingId}">Explaining code line by line...</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    const systemPrompt = "You are a professional Code Explainer. Break down the provided code line by line and explain how it works clearly and concisely.";
+    const systemPrompt = "You are a professional Code Explainer. Break down the provided code line by line clearly and concisely.";
     const explanation = await getAIResponse(codeToExplain, systemPrompt);
 
     const loadingElement = document.getElementById(loadingId);
@@ -98,9 +104,7 @@ function updatePreview(rawCode) {
     const previewFrame = document.getElementById("livePreview");
     if (!previewFrame) return;
 
-    const cleanCode = rawCode.replace(/```html|
-```css|```javascript|```/gi, "").trim();
-    
+    const cleanCode = rawCode.replace(/```html|```css|```javascript|```/gi, "").trim();
     const mimeType = cleanCode.includes("<html>") || cleanCode.includes("<div>") || cleanCode.includes("<button>") ? "text/html" : "text/plain";
     
     if (mimeType === "text/html") {
@@ -109,4 +113,4 @@ function updatePreview(rawCode) {
         previewFrame.srcdoc = `<html><body><pre>${cleanCode}</pre></body></html>`;
     }
         }
-    
+        
