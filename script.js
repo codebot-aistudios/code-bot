@@ -5,112 +5,118 @@ function getApiKey() {
     return part1 + part2;
 }
 
-async function getAIResponse(userMessage, systemPrompt = "") {
+function switchSection(sectionId) {
+    document.getElementById('ai-gen-section').style.display = 'none';
+    document.getElementById('mic-mode-section').style.display = 'none';
+    document.getElementById('explainer-section').style.display = 'none';
+    document.getElementById('live-preview-section').style.display = 'none';
+
+    document.getElementById('ai-gen-btn').classList.remove('active');
+    document.getElementById('mic-mode-btn').classList.remove('active');
+    document.getElementById('explainer-btn').classList.remove('active');
+    document.getElementById('live-preview-btn').classList.remove('active');
+
+    document.getElementById(sectionId + '-section').style.display = 'block';
+    document.getElementById(sectionId + '-btn').classList.add('active');
+}
+
+window.onload = function() {
+    switchSection('ai-gen');
+};
+
+async function callGeminiAPI(promptTxt, systemRole) {
     const apiKey = getApiKey();
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const fullPrompt = systemPrompt ? `${systemPrompt}\n\nUser Request: ${userMessage}` : userMessage;
-
+    
     try {
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: fullPrompt }] }]
+                contents: [{ parts: [{ text: `${systemRole}\n\nUser Request: ${promptTxt}` }] }]
             })
         });
         const data = await response.json();
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-            return data.candidates[0].content.parts[0].text;
-        }
-        return "No response from AI.";
+        return data.candidates[0].content.parts[0].text;
     } catch (error) {
         console.error("API Error:", error);
-        return "Error connecting to Code Bot.";
+        return "Error: Please check your connection or API configuration.";
     }
 }
 
-async function sendMessage() {
-    const inputField = document.getElementById("userInput");
-    const chatBox = document.getElementById("chatBox");
+async function generateCode() {
+    const promptInput = document.getElementById('codePrompt').value.trim();
+    const outputArea = document.getElementById('generatedCodeOutput');
+
+    if (!promptInput) return alert("Please type your request first!");
+
+    outputArea.value = "Code Bot is generating code... Please wait.";
+
+    const role = "You are a simple code generator. Return ONLY the raw code for the requested prompt. Do not write explanation, introduction, or markdown blocks.";
+    const result = await callGeminiAPI(promptInput, role);
     
-    if (!inputField || !chatBox) return;
-    
-    const message = inputField.value.trim();
-    if (message === "") return;
-
-    chatBox.innerHTML += `<div class="message user-message">${message}</div>`;
-    inputField.value = "";
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    const loadingId = "loading-" + Date.now();
-    chatBox.innerHTML += `<div class="message bot-message" id="${loadingId}">Code Bot is generating code...</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    const systemPrompt = "You are an expert Code Generator. Respond ONLY with clean, functional code wrapped inside markdown code blocks like ```html. Do not include explanations.";
-    const aiReply = await getAIResponse(message, systemPrompt);
-
-    const loadingElement = document.getElementById(loadingId);
-    if (loadingElement) loadingElement.remove();
-
-    chatBox.innerHTML += `<div class="message bot-message"><pre><code>${aiReply}</code></pre></div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    updatePreview(aiReply);
+    outputArea.value = result;
 }
 
-function startSpeechRecognition() {
+function startVoiceRecord() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        alert("Microphone not supported in this browser.");
-        return;
-    }
+    if (!SpeechRecognition) return alert("Your browser does not support speech recognition.");
+
     const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
+    recognition.lang = "en-US"; 
     recognition.start();
 
-    recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        const inputField = document.getElementById("userInput");
-        if (inputField) inputField.value = transcript;
+    const outputArea = document.getElementById('voiceCodeOutput');
+    outputArea.value = "Listening... Speak now...";
+
+    recognition.onresult = async function(event) {
+        const textSpoken = event.results[0][0].transcript;
+        outputArea.value = `Spoken command: "${textSpoken}"\n\nGenerating code from voice...`;
+
+        const role = "Convert this spoken command into pure coding. Return ONLY the code, no text explanation.";
+        const result = await callGeminiAPI(textSpoken, role);
+        outputArea.value = result;
+    };
+
+    recognition.onerror = function() {
+        outputArea.value = "Microphone error. Please try again.";
     };
 }
 
 async function explainCode() {
-    const chatBox = document.getElementById("chatBox");
-    if (!chatBox) return;
+    const codeTxt = document.getElementById('explainInput').value.trim();
+    const outputArea = document.getElementById('explainOutput');
 
-    const lastBotMessage = chatBox.querySelector(".bot-message:last-of-type code");
-    if (!lastBotMessage) {
-        alert("No code found to explain!");
-        return;
-    }
+    if (!codeTxt) return alert("Please paste code into the input box!");
 
-    const codeToExplain = lastBotMessage.innerText;
-    const loadingId = "loading-" + Date.now();
-    chatBox.innerHTML += `<div class="message bot-message" id="${loadingId}">Explaining code line by line...</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
+    outputArea.value = "Analyzing code... Breaking down into simple English.";
 
-    const systemPrompt = "You are a professional Code Explainer. Break down the provided code line by line clearly and concisely.";
-    const explanation = await getAIResponse(codeToExplain, systemPrompt);
-
-    const loadingElement = document.getElementById(loadingId);
-    if (loadingElement) loadingElement.remove();
-
-    chatBox.innerHTML += `<div class="message bot-message explanation-box">${explanation}</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
+    const role = "You are a simple code explainer. Convert this code into an easy-to-understand English explanation or prompt breakdown step by step.";
+    const result = await callGeminiAPI(codeTxt, role);
+    
+    outputArea.value = result;
 }
 
-function updatePreview(rawCode) {
-    const previewFrame = document.getElementById("livePreview");
-    if (!previewFrame) return;
+function runPreview() {
+    const htmlContent = document.getElementById('previewCodeEditor').value;
+    const outputBox = document.getElementById('liveRenderOutput');
 
-    const cleanCode = rawCode.replace(/```html|```css|```javascript|```/gi, "").trim();
-    const mimeType = cleanCode.includes("<html>") || cleanCode.includes("<div>") || cleanCode.includes("<button>") ? "text/html" : "text/plain";
+    if (!htmlContent.trim()) return alert("Please type HTML code in the editor!");
+
+    outputBox.innerHTML = `<iframe id="frameBox" style="width:100%; height:250px; border:none; background:white;"></iframe>`;
     
-    if (mimeType === "text/html") {
-        previewFrame.srcdoc = cleanCode;
-    } else {
-        previewFrame.srcdoc = `<html><body><pre>${cleanCode}</pre></body></html>`;
-    }
-        }
-        
+    const iframe = document.getElementById('frameBox');
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+}
+
+function copyText(elementId) {
+    const copyArea = document.getElementById(elementId);
+    if (!copyArea.value) return alert("Nothing to copy!");
+    
+    copyArea.select();
+    document.execCommand('copy');
+    alert("Copied to clipboard!");
+}
