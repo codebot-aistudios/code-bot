@@ -3,7 +3,7 @@ const p1 = "AQ.Ab8RN6KgVtQOeUgKbIUUA4s6J";
 const p2 = "nLRsIxkqI6hPMXIyP2JhBkqaQ";
 
 function getApiKey() {
-    return p1 + p2;
+    return p1 + p2; // FIXED: was part1 + part2 before
 }
 
 // ==================== SECTION SWITCHER ====================
@@ -44,25 +44,23 @@ async function callGeminiAPI(promptTxt, systemRole) {
         });
 
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            const errData = await response.json();
+            throw new Error(errData.error?.message || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
 
         if (!data.candidates || data.candidates.length === 0) {
-            return "Error: No response from API. Please try again.";
+            return "Error: No response from Gemini. Please try again.";
         }
 
         let rawText = data.candidates[0].content.parts[0].text;
-
-        // Clean markdown code blocks if present
         rawText = rawText.replace(/^```[\w]*\n?/gm, '').replace(/```$/gm, '').trim();
-
         return rawText;
 
     } catch (error) {
         console.error("API Error:", error);
-        return `Error: ${error.message}. Please check your API key and connection.`;
+        return `Error: ${error.message}`;
     }
 }
 
@@ -79,17 +77,15 @@ async function generateCode() {
     outputArea.value = "";
     outputArea.placeholder = "Code Bot is thinking... Please wait ⚡";
 
-    const role = `You are an expert full-stack code generator.
+    const role = `You are an expert code generator.
 Rules:
-- Return ONLY raw, clean, working code.
-- NO markdown, NO explanation, NO backticks, NO comments unless asked.
-- If the request is for a website/app, generate complete HTML with embedded CSS and JS in one file.
-- If it's a Python/JS/other script, return only that script.
-- Use real placeholder images from https://picsum.photos/ for any image needs.
-- Make the output visually rich and functional if it's a UI request.`;
+- Return ONLY raw clean working code.
+- NO markdown, NO explanation, NO backticks.
+- If UI/website is requested, return complete HTML with embedded CSS and JS in one file.
+- Use https://picsum.photos/ for placeholder images.
+- Make output visually rich and fully functional.`;
 
     const result = await callGeminiAPI(promptInput, role);
-
     outputArea.value = result;
     btn.disabled = false;
     btn.textContent = "⚡ Generate Code";
@@ -116,7 +112,7 @@ function startVoiceRecord() {
     }
 
     recognition = new SpeechRecognition();
-    recognition.lang = "ur-PK"; // Primary Urdu, falls back to Hindi/English via browser
+    recognition.lang = "ur-PK";
     recognition.continuous = false;
     recognition.interimResults = false;
 
@@ -124,7 +120,6 @@ function startVoiceRecord() {
     btn.textContent = "⏹ Stop Recording";
     btn.classList.add('recording');
     outputArea.value = "🎙️ Listening... Speak in Urdu, Hindi, or English...";
-
     recognition.start();
 
     recognition.onresult = async function (event) {
@@ -136,21 +131,20 @@ function startVoiceRecord() {
         btn.textContent = "🎤 Start Recording";
         btn.classList.remove('recording');
 
-        const role = `You are an expert code generator that understands voice commands in Urdu, Hindi, and English.
+        const role = `You are an expert code generator that understands Urdu, Hindi, and English voice commands.
 Convert the spoken command into working code.
 Rules:
-- Return ONLY the raw code, no explanation, no markdown.
-- If it's a UI/website request, generate complete HTML with CSS and JS.
-- Use https://picsum.photos/ for placeholder images.
-- Make code functional and visually appealing.`;
+- Return ONLY raw code, no explanation, no markdown.
+- If UI is requested, return complete HTML with CSS and JS.
+- Use https://picsum.photos/ for placeholder images.`;
 
         const result = await callGeminiAPI(spokenText, role);
-        outputArea.value = `// 🗣️ Voice Command: "${spokenText}"\n\n${result}`;
+        outputArea.value = `// 🗣️ Voice: "${spokenText}"\n\n${result}`;
         showToast("Code generated from voice!", "success");
     };
 
     recognition.onerror = function (event) {
-        outputArea.value = `❌ Microphone error: ${event.error}. Please try again.`;
+        outputArea.value = `❌ Mic error: ${event.error}. Please try again.`;
         isRecording = false;
         btn.textContent = "🎤 Start Recording";
         btn.classList.remove('recording');
@@ -179,22 +173,22 @@ async function explainCode() {
     outputArea.value = "";
     outputArea.placeholder = "Analyzing your code... 🔍";
 
-    const role = `You are an expert code explainer who teaches beginners.
-Analyze the given code and explain it clearly in this format:
+    const role = `You are an expert code explainer.
+Analyze the given code and explain in this format:
 
 📌 LANGUAGE: [detected language]
 🎯 PURPOSE: [what this code does in one line]
 
 📋 STEP-BY-STEP BREAKDOWN:
-[explain each important part simply]
+[explain each part simply in English]
 
 💡 KEY CONCEPTS USED:
-[list important programming concepts]
+[list important concepts]
 
-🔍 POTENTIAL IMPROVEMENTS:
-[suggest 2-3 improvements if any]
+🔍 POSSIBLE IMPROVEMENTS:
+[2-3 suggestions]
 
-Use simple English. Avoid jargon. Be friendly and encouraging.`;
+Use simple English. Be friendly and clear.`;
 
     const result = await callGeminiAPI(codeTxt, role);
     outputArea.value = result;
@@ -214,28 +208,25 @@ async function runPreview() {
     btn.disabled = true;
     btn.textContent = "⏳ Processing...";
 
-    // Detect if it's HTML or needs AI to convert to HTML
     const isHTML = /<\s*(html|body|div|p|h[1-6]|span|section|header|main|nav|button|input|img|a|ul|li|table|form)/i.test(rawCode);
 
     let finalHTML = rawCode;
 
     if (!isHTML) {
-        // Ask AI to convert code description or other code into HTML preview
-        outputBox.innerHTML = `<div style="padding:20px;color:#888;text-align:center;">🤖 AI is converting your code into a visual preview...</div>`;
+        outputBox.innerHTML = `<div style="padding:20px;color:#888;text-align:center;">🤖 AI converting to visual preview...</div>`;
 
-        const role = `Convert the following code or description into a complete, beautiful, self-contained HTML page that visually demonstrates what the code does.
+        const role = `Convert the following code or description into a complete beautiful self-contained HTML page.
 Rules:
 - Return ONLY complete HTML with embedded CSS and JS.
 - Make it visually stunning with modern design.
-- Use real placeholder images from https://picsum.photos/400/300 where needed.
-- Add smooth animations and hover effects.
+- Use https://picsum.photos/400/300 for images.
+- Add animations and hover effects.
 - No markdown, no backticks, just raw HTML.`;
 
         finalHTML = await callGeminiAPI(rawCode, role);
         finalHTML = finalHTML.replace(/^```[\w]*\n?/gm, '').replace(/```$/gm, '').trim();
     }
 
-    // Render in iframe
     outputBox.innerHTML = `<iframe id="frameBox" style="width:100%;height:400px;border:none;border-radius:8px;background:white;"></iframe>`;
 
     const iframe = document.getElementById('frameBox');
@@ -249,25 +240,14 @@ Rules:
     showToast("Preview rendered!", "success");
 }
 
-// Auto-render on Ctrl+Enter in preview editor
+// Keyboard shortcuts
 document.addEventListener('DOMContentLoaded', () => {
-    const previewEditor = document.getElementById('previewCodeEditor');
-    if (previewEditor) {
-        previewEditor.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                runPreview();
-            }
-        });
-    }
-
-    const codePrompt = document.getElementById('codePrompt');
-    if (codePrompt) {
-        codePrompt.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                generateCode();
-            }
-        });
-    }
+    document.getElementById('previewCodeEditor')?.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') runPreview();
+    });
+    document.getElementById('codePrompt')?.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') generateCode();
+    });
 });
 
 // ==================== COPY TEXT ====================
@@ -278,7 +258,6 @@ function copyText(elementId) {
     navigator.clipboard.writeText(el.value).then(() => {
         showToast("✅ Copied to clipboard!", "success");
     }).catch(() => {
-        // Fallback for older browsers
         el.select();
         document.execCommand('copy');
         showToast("✅ Copied!", "success");
@@ -293,12 +272,7 @@ function showToast(message, type = "info") {
     const toast = document.createElement('div');
     toast.className = 'toast-notification';
 
-    const colors = {
-        success: '#22c55e',
-        error: '#ef4444',
-        warning: '#f59e0b',
-        info: '#3b82f6'
-    };
+    const colors = { success: '#22c55e', error: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
 
     toast.style.cssText = `
         position: fixed;
@@ -317,7 +291,6 @@ function showToast(message, type = "info") {
     `;
     toast.textContent = message;
 
-    // Add animation style
     if (!document.getElementById('toast-style')) {
         const style = document.createElement('style');
         style.id = 'toast-style';
@@ -340,5 +313,5 @@ function showToast(message, type = "info") {
 
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
-                    }
-        
+}
+    
