@@ -1,6 +1,6 @@
 // ==================== API CONFIG ====================
-const p1 = "AQ.Ab8RN6I3-tg_lfOd85wNic8Pf5z";
-const p2 = "toFOgxjRoCH8SdK3T9weTCg";
+const p1 = "AQ.Ab8RN6JjdEObTGhR9EY80m2n_";
+const p2 = "17CnH_N8hyjRNonCB897X5u9w";
 
 function getApiKey() {
     return p1 + p2;
