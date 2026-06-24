@@ -1,223 +1,148 @@
-// ==================== API CONFIG ====================
+// KEY YAHAN LAGAO - DO HISSON MEIN
 const p1 = "AQ.Ab8RN6JjdEObTGhR9EY80m2n_";
 const p2 = "17CnH_N8hyjRNonCB897X5u9w";
 
-function getApiKey() {
-    return p1 + p2;
-}
+function getApiKey() { return p1 + p2; }
 
-// ==================== SECTION SWITCHER ====================
+// SECTION SWITCHER
 function switchSection(sectionId) {
-    document.getElementById('ai-gen-section').style.display = 'none';
-    document.getElementById('mic-mode-section').style.display = 'none';
-    document.getElementById('explainer-section').style.display = 'none';
-    document.getElementById('live-preview-section').style.display = 'none';
-
-    document.getElementById('ai-gen-btn').classList.remove('active');
-    document.getElementById('mic-mode-btn').classList.remove('active');
-    document.getElementById('explainer-btn').classList.remove('active');
-    document.getElementById('live-preview-btn').classList.remove('active');
-
-    document.getElementById(sectionId + '-section').style.display = 'block';
-    document.getElementById(sectionId + '-btn').classList.add('active');
+    ['ai-gen','mic-mode','explainer','live-preview'].forEach(id => {
+        document.getElementById(id+'-section').style.display = 'none';
+        document.getElementById(id+'-btn').classList.remove('active');
+    });
+    document.getElementById(sectionId+'-section').style.display = 'block';
+    document.getElementById(sectionId+'-btn').classList.add('active');
 }
 
-window.onload = function () {
-    switchSection('ai-gen');
-};
+window.onload = function() { switchSection('ai-gen'); };
 
-// ==================== GEMINI API ====================
+// GEMINI API - gemini-2.0-flash (LATEST WORKING MODEL)
 async function callGeminiAPI(promptTxt, systemRole) {
     const apiKey = getApiKey();
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
 
     try {
-        const response = await fetch(url, {
+        const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: systemRole + "\n\nUser Request: " + promptTxt }]
-                }],
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 8192
-                }
+                contents: [{ parts: [{ text: systemRole + "\n\nUser Request: " + promptTxt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
             })
         });
 
-        if (!response.ok) {
-            const err = await response.json();
-            return "API Error: " + (err.error ? err.error.message : response.status);
+        if (!res.ok) {
+            const err = await res.json();
+            return "API Error: " + (err.error ? err.error.message : "Status " + res.status);
         }
 
-        const data = await response.json();
-
-        if (!data.candidates || data.candidates.length === 0) {
-            return "No response received. Please try again.";
-        }
+        const data = await res.json();
+        if (!data.candidates || !data.candidates.length) return "Koi response nahi aaya. Dobara try karo.";
 
         let text = data.candidates[0].content.parts[0].text;
-        // Remove markdown code blocks
-        text = text.replace(/```[a-zA-Z]*\n?/g, '').replace(/```/g, '').trim();
-        return text;
+        return text.replace(/```[a-zA-Z]*\n?/g, '').replace(/```/g, '').trim();
 
-    } catch (error) {
-        return "Connection Error: " + error.message + ". Please check your internet.";
+    } catch (err) {
+        return "Connection Error: " + err.message;
     }
 }
 
-// ==================== AI GEN ====================
+// AI GEN
 async function generateCode() {
-    const promptInput = document.getElementById('codePrompt').value.trim();
-    const outputArea = document.getElementById('generatedCodeOutput');
-
-    if (!promptInput) {
-        alert("Please type your request first!");
-        return;
-    }
-
-    outputArea.value = "⏳ Code Bot is generating code... Please wait.";
-
-    const role = "You are an expert code generator. The user may write in Urdu, Hindi, or English. Understand their request in any language and return ONLY the raw working code. If they ask for a website or UI, return complete HTML with embedded CSS and JS in one single file. Use https://picsum.photos/600/400 for any placeholder images. Do NOT include any explanation, markdown, or code block symbols. Return ONLY pure raw code.";
-
-    const result = await callGeminiAPI(promptInput, role);
-    outputArea.value = result;
+    const prompt = document.getElementById('codePrompt').value.trim();
+    const output = document.getElementById('generatedCodeOutput');
+    const btn = document.querySelector('#ai-gen-section .primary-btn');
+    if (!prompt) { alert("Pehle request likho!"); return; }
+    btn.disabled = true; btn.textContent = "⏳ Generating...";
+    output.value = "Code Ban Raha Hai... ⚡";
+    const role = "You are an expert code generator. User may write in Urdu, Hindi, or English. Understand and return ONLY raw working code. For website/UI requests return complete HTML with embedded CSS+JS. Use https://picsum.photos/600/400 for images. No explanation, no markdown, no backticks. Pure code only.";
+    output.value = await callGeminiAPI(prompt, role);
+    btn.disabled = false; btn.textContent = "Generate Code";
 }
 
-// ==================== MIC MODE ====================
-let isRecording = false;
-let recognitionObj = null;
+// MIC MODE
+let isRecording = false, recObj = null;
 
 function startVoiceRecord() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        alert("Your browser does not support speech recognition. Please use Chrome.");
-        return;
-    }
-
-    const outputArea = document.getElementById('voiceCodeOutput');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert("Chrome use karo mic ke liye!"); return; }
+    const output = document.getElementById('voiceCodeOutput');
     const btn = document.querySelector('#mic-mode-section .voice-btn');
 
     if (isRecording) {
-        recognitionObj.stop();
-        isRecording = false;
-        btn.textContent = "🎤 Start Recording";
-        btn.style.background = "";
-        return;
+        recObj.stop(); isRecording = false;
+        btn.textContent = "🎤 Start Recording"; btn.style.background = ""; return;
     }
 
-    recognitionObj = new SpeechRecognition();
-    recognitionObj.lang = "ur-PK";
-    recognitionObj.continuous = false;
-    recognitionObj.interimResults = false;
-
+    recObj = new SR();
+    recObj.lang = "ur-PK";
+    recObj.continuous = false;
+    recObj.interimResults = false;
     isRecording = true;
-    btn.textContent = "⏹ Stop Recording";
-    btn.style.background = "#ef4444";
-    outputArea.value = "🎙️ Listening... Speak in Urdu, Hindi, or English...";
+    btn.textContent = "⏹ Stop Recording"; btn.style.background = "#ef4444";
+    output.value = "🎙️ Sun Raha Hun... Bolo!";
+    recObj.start();
 
-    recognitionObj.start();
-
-    recognitionObj.onresult = async function (event) {
-        const spokenText = event.results[0][0].transcript;
-        outputArea.value = '🗣️ You said: "' + spokenText + '"\n\n⏳ Generating code...';
-
-        isRecording = false;
-        btn.textContent = "🎤 Start Recording";
-        btn.style.background = "";
-
-        const role = "You are an expert code generator. The user has given a voice command in Urdu, Hindi, or English. Understand it fully and return ONLY the raw working code. If they ask for a website or UI, return complete HTML with embedded CSS and JS. Use https://picsum.photos/600/400 for images. No explanation, no markdown, no code blocks. Pure code only.";
-
-        const result = await callGeminiAPI(spokenText, role);
-        outputArea.value = '// Voice Command: "' + spokenText + '"\n\n' + result;
+    recObj.onresult = async function(e) {
+        const spoken = e.results[0][0].transcript;
+        output.value = '🗣️ Tumne Kaha: "' + spoken + '"\n\n⏳ Code Ban Raha Hai...';
+        isRecording = false; btn.textContent = "🎤 Start Recording"; btn.style.background = "";
+        const role = "You are an expert code generator. User gave voice command in Urdu/Hindi/English. Return ONLY raw code. For UI return complete HTML+CSS+JS. Use https://picsum.photos/600/400 for images. No markdown.";
+        output.value = '// 🗣️ Voice: "' + spoken + '"\n\n' + await callGeminiAPI(spoken, role);
     };
 
-    recognitionObj.onerror = function (event) {
-        outputArea.value = "❌ Microphone error: " + event.error + ". Please try again.";
-        isRecording = false;
-        btn.textContent = "🎤 Start Recording";
-        btn.style.background = "";
+    recObj.onerror = function(e) {
+        output.value = "❌ Mic Error: " + e.error;
+        isRecording = false; btn.textContent = "🎤 Start Recording"; btn.style.background = "";
     };
 
-    recognitionObj.onend = function () {
-        if (isRecording) {
-            isRecording = false;
-            btn.textContent = "🎤 Start Recording";
-            btn.style.background = "";
-        }
+    recObj.onend = function() {
+        if (isRecording) { isRecording = false; btn.textContent = "🎤 Start Recording"; btn.style.background = ""; }
     };
 }
 
-// ==================== EXPLAINER ====================
+// EXPLAINER
 async function explainCode() {
-    const codeTxt = document.getElementById('explainInput').value.trim();
-    const outputArea = document.getElementById('explainOutput');
-
-    if (!codeTxt) {
-        alert("Please paste code into the input box!");
-        return;
-    }
-
-    outputArea.value = "⏳ Analyzing code... Please wait.";
-
-    const role = "You are an expert code explainer. Analyze the given code and explain it clearly in English using this format:\n\n📌 LANGUAGE: [detected language]\n🎯 PURPOSE: [what this code does in one sentence]\n\n📋 STEP-BY-STEP BREAKDOWN:\n[explain each part simply]\n\n💡 KEY CONCEPTS:\n[list important programming concepts used]\n\n🔍 POSSIBLE IMPROVEMENTS:\n[2-3 helpful suggestions]\n\nUse simple English. Be clear and friendly.";
-
-    const result = await callGeminiAPI(codeTxt, role);
-    outputArea.value = result;
+    const code = document.getElementById('explainInput').value.trim();
+    const output = document.getElementById('explainOutput');
+    const btn = document.querySelector('#explainer-section .primary-btn');
+    if (!code) { alert("Code paste karo pehle!"); return; }
+    btn.disabled = true; btn.textContent = "⏳ Analyzing...";
+    output.value = "Code Analyze Ho Raha Hai... 🔍";
+    const role = "You are an expert code explainer. Explain in simple English:\n\n📌 LANGUAGE: [detected]\n🎯 PURPOSE: [one sentence]\n\n📋 STEP-BY-STEP:\n[simple steps]\n\n💡 KEY CONCEPTS:\n[list]\n\n🔍 IMPROVEMENTS:\n[2-3 tips]\n\nFriendly simple English.";
+    output.value = await callGeminiAPI(code, role);
+    btn.disabled = false; btn.textContent = "Explain Code";
 }
 
-// ==================== LIVE PREVIEW ====================
+// LIVE PREVIEW
 async function runPreview() {
-    const rawCode = document.getElementById('previewCodeEditor').value.trim();
-    const outputBox = document.getElementById('liveRenderOutput');
+    const raw = document.getElementById('previewCodeEditor').value.trim();
+    const box = document.getElementById('liveRenderOutput');
+    const btn = document.querySelector('#live-preview-section .render-btn');
+    if (!raw) { alert("HTML code paste karo!"); return; }
+    btn.disabled = true; btn.textContent = "⏳ Processing...";
 
-    if (!rawCode) {
-        alert("Please type HTML code in the editor!");
-        return;
-    }
-
-    const isHTML = /<(html|body|div|p|h1|h2|h3|h4|h5|h6|span|section|header|main|nav|button|input|img|a|ul|li|table|form)/i.test(rawCode);
-
-    let finalHTML = rawCode;
+    const isHTML = /<(html|body|div|p|h[1-6]|span|section|header|main|nav|button|input|img|a|ul|li|table|form)/i.test(raw);
+    let finalHTML = raw;
 
     if (!isHTML) {
-        outputBox.innerHTML = '<div style="padding:20px;color:#888;text-align:center;">🤖 AI is converting to visual preview...</div>';
-
-        const role = "Convert the following code or description into a complete beautiful self-contained HTML page that visually shows what it does. Return ONLY complete raw HTML with embedded CSS and JS. Make it modern and visually appealing. Use https://picsum.photos/600/400 for images. No markdown, no backticks, just pure HTML.";
-
-        finalHTML = await callGeminiAPI(rawCode, role);
-        finalHTML = finalHTML.replace(/```[a-zA-Z]*\n?/g, '').replace(/```/g, '').trim();
+        box.innerHTML = '<div style="padding:30px;color:#888;text-align:center;">🤖 AI Preview Bana Raha Hai...</div>';
+        const role = "Convert this into complete beautiful self-contained HTML page. ONLY raw HTML with embedded CSS+JS. Modern design. Use https://picsum.photos/600/400 for images. No markdown, pure HTML.";
+        finalHTML = (await callGeminiAPI(raw, role)).replace(/```[a-zA-Z]*\n?/g, '').replace(/```/g, '').trim();
     }
 
-    outputBox.innerHTML = '<iframe id="frameBox" style="width:100%;height:400px;border:none;border-radius:8px;background:white;"></iframe>';
-
-    const iframe = document.getElementById('frameBox');
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-    doc.open();
-    doc.write(finalHTML);
-    doc.close();
+    box.innerHTML = '<iframe id="frameBox" style="width:100%;height:420px;border:none;border-radius:8px;background:white;"></iframe>';
+    const doc = document.getElementById('frameBox').contentDocument;
+    doc.open(); doc.write(finalHTML); doc.close();
+    btn.disabled = false; btn.textContent = "⚡ Auto-Correct & Render Preview";
 }
 
-// ==================== COPY TEXT ====================
+// COPY
 function copyText(elementId) {
     const el = document.getElementById(elementId);
-    if (!el || !el.value) {
-        alert("Nothing to copy!");
-        return;
-    }
-
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(el.value).then(function () {
-            alert("✅ Copied to clipboard!");
-        }).catch(function () {
-            el.select();
-            document.execCommand('copy');
-            alert("✅ Copied!");
-        });
-    } else {
-        el.select();
-        document.execCommand('copy');
-        alert("✅ Copied!");
-    }
+    if (!el || !el.value) { alert("Nothing to copy!"); return; }
+    navigator.clipboard.writeText(el.value)
+        .then(() => alert("✅ Copied!"))
+        .catch(() => { el.select(); document.execCommand('copy'); alert("✅ Copied!"); });
 }
+    
