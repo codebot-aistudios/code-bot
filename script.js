@@ -1,6 +1,6 @@
 // KEY YAHAN LAGAO - DO HISSON MEIN
-const p1 = "AQ.Ab8RN6JjdEObTGhR9EY80m2n_";
-const p2 = "17CnH_N8hyjRNonCB897X5u9w";
+const p1 = "AQ.Ab8RN6IPtel_CY0dHGRgzVTQIk";
+const p2 = "Dkt4woS59TmT9Ou1_EDAQ4pA";
 
 function getApiKey() { return p1 + p2; }
 
