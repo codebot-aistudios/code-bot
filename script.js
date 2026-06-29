@@ -1226,7 +1226,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const TerminalLoggerInstance = new window.CodeBotTerminalSimulator(CoreStateEngineInstance);
         const MacroEngineInstance = new window.CodeBotMacroEngine(CoreStateEngineInstance, VirtualFileSystemInstance);
-        const StorageBackupInstance = new window.LocalStorageBackupManager(CoreStateEngineInstance, VirtualFileSystemInstance);
+        const StorageBackupInstance = new window.CodeBotBackupManager(CoreStateEngineInstance, VirtualFileSystemInstance);
+        
 
         // 4. Connect Cross-Module Interprocess Communications (IPC)
         TerminalLoggerInstance.initializeLogInterface();
