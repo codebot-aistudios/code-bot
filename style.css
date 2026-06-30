@@ -12,154 +12,138 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 30px 20px;
     width: 100%;
 }
 
 .header-banner {
     width: 100%;
-    max-width: 800px;
+    max-width: 1000px;
     text-align: center;
-    padding: 15px;
-    font-size: 28px;
-    font-weight: 700;
+    padding: 10px;
+    font-size: 32px;
+    font-weight: 800;
     color: #00ffd5;
-    margin-bottom: 20px;
+    letter-spacing: 1px;
 }
 
-.tabs-container {
-    display: flex;
-    width: 100%;
-    max-width: 800px;
-    background-color: #1e1f26;
-    padding: 6px;
-    border-radius: 8px;
-    gap: 8px;
-    margin-bottom: 25px;
-}
-
-.tab-btn {
-    flex: 1;
-    background: transparent;
-    color: #A9B2C3;
-    border: none;
-    padding: 14px;
-    font-size: 15px;
-    cursor: pointer;
-    border-radius: 6px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.tab-btn.active {
-    background-color: #00ffd5 !important;
-    color: #000000 !important;
-}
-
-.app-section {
-    width: 100%;
-    max-width: 800px;
-    display: none; 
-    flex-direction: column;
-}
-
-.primary-btn {
-    background-color: #00ffd5;
-    color: #000000;
-    font-weight: 700;
+.assistant-title {
     font-size: 18px;
-    padding: 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    width: 100%;
-    margin: 15px 0;
-    transition: background 0.2s;
+    color: #FFFFFF;
+    margin-bottom: 30px;
     text-align: center;
+    font-weight: 400;
+    opacity: 0.9;
 }
 
-.primary-btn:hover {
-    background-color: #00c8a5;
+.app-container {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
 }
 
-.render-btn {
-    background: #ff4a5a;
-    color: white;
-}
-
-.render-btn:hover {
-    background: #e03b4a;
-}
-
-textarea {
-    width: 100% !important;
-    min-height: 180px;
+.input-section {
+    width: 100%;
     background-color: #1e1f26;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #2c303b;
+}
+
+#codePromptField {
+    width: 100% !important;
+    min-height: 100px;
+    background-color: #131417;
     color: #f8f8f2;
     border: 1px solid #2c303b;
     border-radius: 6px;
     padding: 16px;
-    font-family: 'Courier New', Courier, monospace;
     font-size: 16px;
     resize: vertical;
     outline: none;
-    margin: 10px 0;
+    margin-bottom: 15px;
 }
 
-textarea:focus {
+#codePromptField:focus {
     border-color: #00ffd5;
 }
 
-.output-header {
+#generateCodeBtn {
+    background-color: #00ffd5;
+    color: #000000;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+#generateCodeBtn:hover {
+    background-color: #00c8a5;
+}
+
+.output-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .output-grid { grid-template-columns: 1fr; }
+}
+
+.code-box-wrapper {
+    background-color: #1e1f26;
+    border: 1px solid #2c303b;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.box-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-    margin-top: 20px;
-    color: #5A99E9;
+    margin-bottom: 10px;
+    color: #00ffd5;
     font-size: 14px;
     font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+}
+
+.code-box-wrapper textarea {
+    width: 100% !important;
+    min-height: 380px;
+    background-color: #131417;
+    color: #a9b2c3;
+    border: 1px solid #2c303b;
+    border-radius: 6px;
+    padding: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    resize: vertical;
+    outline: none;
 }
 
 .copy-btn {
     background-color: #2c303b;
     color: #A9B2C3;
     border: 1px solid #444857;
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
 }
 
 .copy-btn:hover {
     border-color: #00ffd5;
     color: #fff;
-}
-
-.status-text {
-    font-size: 14px;
-    color: #00ffd5;
-    font-weight: 600;
-    margin-top: 10px;
-}
-
-.center-text {
-    text-align: center;
-    color: #A9B2C3;
-    margin-bottom: 10px;
-}
-
-.result-box {
-    width: 100%;
-    min-height: 150px;
-    background-color: #ffffff;
-    color: #000000;
-    border: 1px solid #2c303b;
-    border-radius: 6px;
-    padding: 16px;
-    margin-top: 10px;
     }
     
