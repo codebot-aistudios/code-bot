@@ -1,393 +1,65 @@
 /**
- * CODE BOT INTEGRATED SOFTWARE SUITE - COMPLETE UNIFIED ARCHITECTURE
- * VERSION: 6.0.0 (OFFLINE BROWSER COMPILATION GENERATION ARCHITECTURE)
+ * CODE BOT LOCAL GENERATION ENGINE (100% OFFLINE)
  */
 
 "use strict";
 
-// ==========================================
-// PART 1: CORE SYSTEM ROUTER & ENGINE LAYER
-// ==========================================
-class CoreRouterEngine {
-    constructor() {
-        this.routes = new Map();
-        this.middlewareStack = [];
-        this.pluginRegistry = new Map();
-        this.systemState = { initialized: false, executionCount: 0, activeConnections: 0 };
+// Local database containing structured template responses
+const localCodeDatabase = {
+    login: {
+        html: `<div class="login-card">\n  <h2>Welcome Back</h2>\n  <input type="email" placeholder="Email Address">\n  <input type="password" placeholder="Password">\n  <button id="loginBtn">Sign In</button>\n</div>`,
+        css: `.login-card {\n  background: #1e1f26;\n  padding: 30px;\n  border-radius: 10px;\n  text-align: center;\n}\ninput {\n  width: 100%;\n  padding: 10px;\n  margin: 10px 0;\n  background: #131417;\n  border: 1px solid #2c303b;\n  color: white;\n}\nbutton {\n  background: #00ffd5;\n  color: black;\n  padding: 12px;\n  border: none;\n  width: 100%;\n  cursor: pointer;\n}`,
+        js: `document.getElementById('loginBtn').addEventListener('click', () => {\n  alert('Logged in locally via Code Bot!');\n});`
+    },
+    calculator: {
+        html: `<div class="calc">\n  <input type="text" id="display" readonly>\n  <div class="keys">\n    <button onclick="press('1')">1</button>\n    <button onclick="press('2')">2</button>\n    <button onclick="clearCalc()">C</button>\n  </div>\n</div>`,
+        css: `.calc {\n  background: #222;\n  padding: 20px;\n  border-radius: 8px;\n}\n#display {\n  width: 100%;\n  height: 40px;\n  margin-bottom: 10px;\n  text-align: right;\n}\nbutton {\n  padding: 15px;\n  margin: 5px;\n}`,
+        js: `function press(num) {\n  document.getElementById('display').value += num;\n}\nfunction clearCalc() {\n  document.getElementById('display').value = '';\n}`
+    },
+    button: {
+        html: `<button id="magicBtn">Hover / Click Me!</button>`,
+        css: `#magicBtn {\n  background: linear-gradient(45deg, #ff4a5a, #00ffd5);\n  color: white;\n  font-size: 20px;\n  padding: 15px 30px;\n  border: none;\n  border-radius: 50px;\n  cursor: pointer;\n  transition: transform 0.2s;\n}\n#magicBtn:hover {\n  transform: scale(1.1);\n}`,
+        js: `document.getElementById('magicBtn').addEventListener('click', () => {\n  alert('Magic triggered!');\n});`
+    },
+    todo: {
+        html: `<div class="todo-app">\n  <input type="text" id="taskInput" placeholder="New Task...">\n  <button id="addBtn">Add Task</button>\n  <ul id="taskList"></ul>\n</div>`,
+        css: `.todo-app { background: #1e1f26; padding: 20px; border-radius: 8px; }\nul { list-style: none; padding-top: 10px; }`,
+        js: `document.getElementById('addBtn').addEventListener('click', () => {\n  const task = document.getElementById('taskInput').value;\n  if(!task) return;\n  const li = document.createElement('li');\n  li.textContent = task;\n  document.getElementById('taskList').appendChild(li);\n  document.getElementById('taskInput').value = '';\n});`
+    },
+    default: {
+        html: `<div class="container">\n  <h1>Custom Code Bot Element</h1>\n  <p>Ready to customize layout specs.</p>\n</div>`,
+        css: `.container {\n  padding: 20px;\n  border: 1px dashed #00ffd5;\n  text-align: center;\n}`,
+        js: `console.log("Custom code asset instantiated successfully.");`
     }
-    registerMiddleware(middlewareFunction) {
-        if (typeof middlewareFunction !== 'function') throw new TypeError('Middleware must be a function.');
-        this.middlewareStack.push(middlewareFunction);
+};
+
+function generateLocalCodeOffline() {
+    const inputVal = document.getElementById('codePromptField').value.toLowerCase();
+    
+    let matchedTemplate = localCodeDatabase.default;
+
+    // Direct string keyword checking
+    if (inputVal.includes('login') || inputVal.includes('form')) {
+        matchedTemplate = localCodeDatabase.login;
+    } else if (inputVal.includes('calc') || inputVal.includes('calculator')) {
+        matchedTemplate = localCodeDatabase.calculator;
+    } else if (inputVal.includes('btn') || inputVal.includes('button')) {
+        matchedTemplate = localCodeDatabase.button;
+    } else if (inputVal.includes('todo') || inputVal.includes('task') || inputVal.includes('list')) {
+        matchedTemplate = localCodeDatabase.todo;
     }
-    registerRoute(endpoint, handler) {
-        if (this.routes.has(endpoint)) throw new Error(`Route conflict: ${endpoint}`);
-        this.routes.set(endpoint, handler);
-    }
-    registerPlugin(pluginName, pluginInstance) {
-        if (this.pluginRegistry.has(pluginName)) throw new Error(`Plugin conflict: ${pluginName}`);
-        this.pluginRegistry.set(pluginName, pluginInstance);
-    }
-    async executeMiddleware(context) {
-        let index = 0;
-        const next = async () => {
-            if (index < this.middlewareStack.length) {
-                const middleware = this.middlewareStack[index++];
-                await middleware(context, next);
-            }
-        };
-        await next();
-    }
-    async handleRequest(endpoint, payload) {
-        this.systemState.executionCount++;
-        this.systemState.activeConnections++;
-        const context = { endpoint, payload, timestamp: Date.now(), result: null, error: null };
-        try {
-            await this.executeMiddleware(context);
-            if (!this.routes.has(endpoint)) throw new Error(`Route not found: ${endpoint}`);
-            const handler = this.routes.get(endpoint);
-            context.result = await handler(context.payload, this.pluginRegistry);
-        } catch (exception) {
-            context.error = { message: exception.message, stack: exception.stack, code: 500 };
-        } finally {
-            this.systemState.activeConnections--;
-        }
-        return context;
-    }
+
+    // Direct injection instantly without fetch lag
+    document.getElementById('htmlOutputBox').value = matchedTemplate.html;
+    document.getElementById('cssOutputBox').value = matchedTemplate.css;
+    document.getElementById('jsOutputBox').value = matchedTemplate.js;
 }
-if (typeof window !== 'undefined') window.CodeBotRouterEngine = CoreRouterEngine;
 
-// ==========================================
-// PART 2: API INTEGRATION & ORCHESTRATOR
-// ==========================================
-class ApiOrchestratorPlugin {
-    constructor(config = {}) {
-        this.geminiApiKey = config.geminiApiKey || null;
-        this.huggingFaceApiKey = config.huggingFaceApiKey || null;
-        this.requestTimeout = config.timeout || 5000;
-        this.metrics = { totalRequestsProcessed: 0, failedRequests: 0 };
-    }
-    setApiKeys(geminiKey, hfKey) {
-        if (geminiKey) this.geminiApiKey = geminiKey;
-        if (hfKey) this.huggingFaceApiKey = hfKey;
-    }
-    async forwardToGeminiPipeline(promptText) {
-        this.metrics.totalRequestsProcessed++;
-        if (!this.geminiApiKey) {
-            this.metrics.failedRequests++;
-            throw new Error("Gemini Credentials undefined.");
-        }
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.geminiApiKey}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
-        try {
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            if (!response.ok) throw new Error(`Server returned status: ${response.status}`);
-            const data = await response.json();
-            return data.candidates[0].content.parts[0].text;
-        } catch (err) {
-            this.metrics.failedRequests++;
-            throw err;
-        }
-    }
-}
-if (typeof window !== 'undefined') window.CodeBotApiOrchestrator = ApiOrchestratorPlugin;
-
-// ==========================================
-// PART 3: STATE MANAGEMENT & EVENT BUS
-// ==========================================
-class SystemStateStore {
-    constructor() {
-        this.state = {
-            userPreferences: { theme: 'dark', fontSize: 14, autoSave: true },
-            activeProject: { id: null, name: 'Untitled', files: [] },
-            compilerStatus: 'idle',
-            tokenMetrics: { totalTokensUsed: 0, apiCallCount: 0 }
-        };
-        this.listeners = new Map();
-        this.cacheRegistry = new Map();
-        this.maxCacheEntries = 1000;
-    }
-    subscribe(eventType, callback) {
-        if (!this.listeners.has(eventType)) this.listeners.set(eventType, []);
-        this.listeners.get(eventType).push(callback);
-        return () => {
-            const currentListeners = this.listeners.get(eventType);
-            if (currentListeners) this.listeners.set(eventType, currentListeners.filter(l => l !== callback));
-        };
-    }
-    publish(eventType, payload) {
-        if (!this.listeners.has(eventType)) return;
-        this.listeners.get(eventType).forEach(callback => {
-            try { callback(payload); } catch (e) {}
-        });
-    }
-    updateState(path, value) {
-        const keys = path.split('.');
-        let current = this.state;
-        for (let i = 0; i < keys.length - 1; i++) {
-            if (!current[keys[i]]) current[keys[i]] = {};
-            current = current[keys[i]];
-        }
-        const targetKey = keys[keys.length - 1];
-        const previousValue = current[targetKey];
-        current[targetKey] = value;
-        this.publish('STATE_CHANGED', { path, previousValue, newValue: value, stateSnapshot: { ...this.state } });
-    }
-    getState(path) {
-        return path.split('.').reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : undefined, this.state);
-    }
-}
-if (typeof window !== 'undefined') window.CodeBotStateEngine = new SystemStateStore();
-
-// ==========================================
-// PART 4: CODE PREPROCESSOR & VALIDATION
-// ==========================================
-class CodePreprocessorEngine {
-    extractCodeBlocks(rawString) {
-        const result = { html: "", css: "", javascript: "", raw: rawString };
-        let htmlCleaned = rawString;
-        let styleMatch;
-        const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-        while ((styleMatch = styleRegex.exec(rawString)) !== null) { result.css += styleMatch[1] + "\n"; }
-        htmlCleaned = htmlCleaned.replace(styleRegex, "");
-        let scriptMatch;
-        const scriptRegex = /<script[^>]*>([\s\S]*?)<\/script>/gi;
-        while ((scriptMatch = scriptRegex.exec(rawString)) !== null) { result.javascript += scriptMatch[1] + "\n"; }
-        htmlCleaned = htmlCleaned.replace(scriptRegex, "");
-        result.html = htmlCleaned.trim();
-        return result;
-    }
-    validateJavascriptSyntax(jsCode) {
-        const report = { valid: true, warnings: [], criticalErrors: [] };
-        if (!jsCode || jsCode.trim() === "") return report;
-        try { new Function(jsCode); } catch (syntaxError) {
-            report.valid = false;
-            report.criticalErrors.push(`Syntax Error: ${syntaxError.message}`);
-        }
-        return report;
-    }
-    sanitizeHtmlPayload(htmlMarkup) {
-        if (!htmlMarkup) return "";
-        return htmlMarkup.replace(/<iframe[^>]*>([\s\S]*?)<\/iframe>/gi, "").replace(/onload\s*=\s*"[^"]*"/gi, "");
-    }
-}
-if (typeof window !== 'undefined') window.CodeBotPreprocessor = new CodePreprocessorEngine();
-
-// ==========================================
-// PART 5: ADVANCED DOM VIEW CONTROLLER
-// ==========================================
-class CodeBotViewController {
-    constructor(stateStore, preprocessor) {
-        this.store = stateStore;
-        this.preprocessor = preprocessor;
-        this.domRegistry = new Map();
-    }
-    cacheElements(selectors = {}) {
-        for (const [key, selector] of Object.entries(selectors)) {
-            const element = document.querySelector(selector);
-            if (element) this.domRegistry.set(key, element);
-        }
-    }
-    getElement(key) {
-        return this.domRegistry.get(key);
-    }
-    bindGlobalUiEvents() {
-        const genBtn = this.getElement('generateButton');
-        if (genBtn) {
-            genBtn.addEventListener('click', () => {
-                const inputElement = this.getElement('promptInput');
-                if (inputElement && inputElement.value.trim()) {
-                    this.store.updateState('compilerStatus', 'active_api_call');
-                    this.store.publish('LOG_DISPATCH', { level: 'info', message: `Initializing generation context...` });
-                }
-            });
-        }
-        this.store.subscribe('STATE_CHANGED', (mutation) => {
-            if (mutation.path === 'compilerStatus') {
-                const btn = this.getElement('generateButton');
-                if (btn) {
-                    btn.disabled = mutation.newValue === 'active_api_call';
-                    btn.textContent = mutation.newValue === 'active_api_call' ? "Compiling..." : "Generate Code";
-                }
-            }
-        });
-    }
-}
-if (typeof window !== 'undefined') window.CodeBotViewManager = CodeBotViewController;
-
-// ==========================================
-// PART 6: VIRTUAL FILE SYSTEM SIMULATOR
-// ==========================================
-class VirtualFileSystemStore {
-    constructor(stateStore) {
-        this.store = stateStore;
-        this.files = new Map();
-        this.activeFileIdentifier = null;
-        this.initializeDefaultWorkspace();
-    }
-    initializeDefaultWorkspace() {
-        this.createNewVirtualFile('index.html', 'html', '<!DOCTYPE html>\n<html><body>\n\n</body>\n</html>');
-        this.createNewVirtualFile('styles.css', 'css', 'body { margin: 0; }');
-        this.createNewVirtualFile('app.js', 'javascript', 'console.log("System initialized.");');
-        this.setActiveVirtualFile('index.html');
-    }
-    createNewVirtualFile(filename, extension, rawContent = "") {
-        const fileMetadata = { id: `v_node_${Date.now()}`, name: filename, ext: extension, bufferContent: rawContent, sizeBytes: new Blob([rawContent]).size };
-        this.files.set(filename, fileMetadata);
-        this.synchronizeStateStoreMirror();
-        return fileMetadata;
-    }
-    writeToVirtualFile(filename, newContentString) {
-        if (!this.files.has(filename)) return;
-        const fileNode = this.files.get(filename);
-        fileNode.bufferContent = newContentString;
-        this.store.publish('VFS_ACTIVE_BUFFER_CHANGED', { fileMetadata: fileNode });
-    }
-    readVirtualFile(filename) {
-        const fileNode = this.files.get(filename);
-        return fileNode ? fileNode.bufferContent : null;
-    }
-    setActiveVirtualFile(filename) {
-        if (!this.files.has(filename)) return false;
-        this.activeFileIdentifier = filename;
-        this.store.updateState('activeProject.id', this.files.get(filename).id);
-        return true;
-    }
-    getAllVirtualFiles() { return Array.from(this.files.values()); }
-    synchronizeStateStoreMirror() {
-        const fileListArray = this.getAllVirtualFiles().map(node => ({ id: node.id, name: node.name, size: node.sizeBytes }));
-        this.store.updateState('activeProject.files', fileListArray);
-    }
-}
-if (typeof window !== 'undefined') window.CodeBotVFS = VirtualFileSystemStore;
-
-// ==========================================
-// PART 7: SANDBOXED IFRAME RENDER ENGINE
-// ==========================================
-class VirtualSandboxedRenderEngine {
-    constructor(stateStore, vfsSubsystem, preprocessorSubsystem) {
-        this.store = stateStore;
-        this.vfs = vfsSubsystem;
-        this.preprocessor = preprocessorSubsystem;
-        this.sandboxNodeKey = 'virtualRenderSandboxLeaf';
-    }
-    initializeSandboxedDocumentModel() {
-        const frameContainer = document.getElementById('sandboxedOutputViewContainer');
-        if (!frameContainer) return false;
-        const iframeNode = document.createElement('iframe');
-        iframeNode.id = this.sandboxNodeKey;
-        iframeNode.style.cssText = 'width:100%;height:100%;border:none;background:#ffffff;';
-        frameContainer.innerHTML = '';
-        frameContainer.appendChild(iframeNode);
-        return true;
-    }
-}
-if (typeof window !== 'undefined') window.CodeBotSandboxManager = VirtualSandboxedRenderEngine;
-
-// ==========================================
-// PART 8: TERMINAL SIMULATOR LOGS MANAGER
-// ==========================================
-class SystemLogTerminalSimulator {
-    constructor(stateStore) {
-        this.store = stateStore;
-        this.logsBufferArray = [];
-    }
-    initializeLogInterface() {
-        this.store.subscribe('LOG_DISPATCH', (payload) => {
-            this.logsBufferArray.push(payload);
-            const outputNode = document.getElementById('terminalOutputLogViewer');
-            if (outputNode) {
-                outputNode.innerHTML = this.logsBufferArray.map(n => `<div>[${n.level.toUpperCase()}]: ${n.message}</div>`).join('');
-                outputNode.scrollTop = outputNode.scrollHeight;
-            }
-        });
-    }
-}
-if (typeof window !== 'undefined') window.CodeBotTerminalSimulator = SystemLogTerminalSimulator;
-
-// ==========================================
-// PART 9: AI PROMPT CONTEXT ASSEMBLER
-// ==========================================
-class AiPromptContextAssembler {
-    constructor(vfsSubsystem) { this.vfs = vfsSubsystem; }
-    assembleTargetPayload(userPromptRaw) {
-        return { systemRole: "Expert Developer", compiledPromptPayload: userPromptRaw };
-    }
-}
-if (typeof window !== 'undefined') window.CodeBotContextAssembler = AiPromptContextAssembler;
-
-// ==========================================
-// PART 10: LOCAL STORAGE BACKUP MANAGER
-// ==========================================
-class LocalStorageBackupManager {
-    constructor(stateStore, vfsSubsystem) {
-        this.store = stateStore;
-        this.vfs = vfsSubsystem;
-        this.storageKeyName = 'CODE_BOT_VFS_SNAPSHOT_MIRROR';
-    }
-    initializeBackupStreamListeners() {
-        this.store.subscribe('VFS_FILE_UPDATED', () => {
-            localStorage.setItem(this.storageKeyName, JSON.stringify(this.vfs.getAllVirtualFiles()));
-        });
-    }
-    attemptWorkspaceAutoRecovery() { return false; }
-}
-// FIX applied here: Ensuring explicit window property mapping matches bootstrap constructor pattern
-if (typeof window !== 'undefined') window.CodeBotBackupManager = LocalStorageBackupManager;
-
-// ==========================================
-// PART 11: MACRO COMMAND EXECUTOR
-// ==========================================
-class SystemMacroCommandExecutor {
-    constructor(stateStore, vfsSubsystem) {
-        this.store = stateStore;
-        this.vfs = vfsSubsystem;
-    }
-}
-if (typeof window !== 'undefined') window.CodeBotMacroEngine = SystemMacroCommandExecutor;
-
-// ==========================================
-// PART 12: SYSTEM BOOTSTRAP MASTER ORCHESTRATOR
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    try {
-        const CoreStateEngineInstance = window.CodeBotStateEngine;
-        const SystemPreprocessorInstance = window.CodeBotPreprocessor;
-        if (!CoreStateEngineInstance || !SystemPreprocessorInstance) throw new Error("Initialization Fault.");
-
-        const VirtualFileSystemInstance = new window.CodeBotVFS(CoreStateEngineInstance);
-        const ViewControllerInstance = new window.CodeBotViewManager(CoreStateEngineInstance, SystemPreprocessorInstance);
-        
-        ViewControllerInstance.cacheElements({
-            promptInput: '#codePromptElementField',
-            generateButton: '#triggerGenerationActionButton',
-            statusIndicatorNode: '#systemStatusIndicatorDot',
-            tabNavigationContainer: '#rootLayoutTabNavigationHeaderBar'
-        });
-
-        const IsolatedSandboxInstance = new window.CodeBotSandboxManager(CoreStateEngineInstance, VirtualFileSystemInstance, SystemPreprocessorInstance);
-        const TerminalLoggerInstance = new window.CodeBotTerminalSimulator(CoreStateEngineInstance);
-        const MacroEngineInstance = new window.CodeBotMacroEngine(CoreStateEngineInstance, VirtualFileSystemInstance);
-        const StorageBackupInstance = new window.CodeBotBackupManager(CoreStateEngineInstance, VirtualFileSystemInstance);
-
-        TerminalLoggerInstance.initializeLogInterface();
-        IsolatedSandboxInstance.initializeSandboxedDocumentModel();
-        ViewControllerInstance.bindGlobalUiEvents();
-        StorageBackupInstance.initializeBackupStreamListeners();
-
-        window.CodeBotAppCoreGate = {
-            state: CoreStateEngineInstance, vfs: VirtualFileSystemInstance, view: ViewControllerInstance,
-            sandbox: IsolatedSandboxInstance, macros: MacroEngineInstance, backup: StorageBackupInstance, terminal: TerminalLoggerInstance
-        };
-        CoreStateEngineInstance.publish('LOG_DISPATCH', { level: 'info', message: 'All modules compiled cleanly. Code Bot engine operational.' });
-    } catch (err) {
-        console.error("Initialization failed:", err);
-    }
-});
-                
+function copyCodePayload(id) {
+    const box = document.getElementById(id);
+    if (!box.value) return;
+    box.select();
+    navigator.clipboard.writeText(box.value);
+    alert("Copied to clipboard!");
+               }
+            
